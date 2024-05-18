@@ -16,6 +16,7 @@ func GetNodeCommands() *cobra.Command {
 	cmd.AddCommand(GetExtractAddrBookCmd())
 	cmd.AddCommand(GetPruneAddrBookCmd())
 	cmd.AddCommand(GetPruneNodeDataCmd())
+	cmd.AddCommand(GetStateSyncCmd())
 
 	return cmd
 

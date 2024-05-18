@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 	"net/http"
 	"os"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -44,8 +43,7 @@ func GetStepCheckCmd() *cobra.Command {
 				return
 			}
 
-			isLinux := runtime.GOOS == "linux"
-			requireServiceFileForValidatorOnLinux := nodeType == types.ValidatorNode && isLinux
+			requireServiceFileForValidatorOnLinux := nodeType == types.ValidatorNode && utils.IsLinux()
 
 			serviceFilePath, _ := cmd.Flags().GetString(flagServiceFile)
 			if requireServiceFileForValidatorOnLinux && serviceFilePath == "" {
