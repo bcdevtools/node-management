@@ -30,6 +30,8 @@ func GetStepCheckCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Short: "Check node setup",
 		Run: func(cmd *cobra.Command, args []string) {
+			utils.MustNotUserRoot()
+
 			fmt.Println("App version", constants.VERSION)
 			fmt.Println("NOTICE: always update to latest version for accurate check")
 			go checkLatestRelease()
