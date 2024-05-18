@@ -111,6 +111,8 @@ func checkHomeConfigAppToml(configPath string, nodeType types.NodeType) *types.A
 		}
 	}
 
+	const recommendPruningCustomKeepRecent = 100
+
 	switch app.Pruning {
 	case constants.PruningDefault:
 		if isValidator {
@@ -121,7 +123,7 @@ func checkHomeConfigAppToml(configPath string, nodeType types.NodeType) *types.A
 		} else if isSnapshotNode {
 			warnRecord(
 				"pruning set to 'default' in app.toml file, snapshot not should be configured properly for snapshot purpose",
-				"set pruning to custom 100/10",
+				fmt.Sprintf("set pruning to custom %d/10", recommendPruningCustomKeepRecent),
 			)
 		} else if isArchivalNode {
 			fatalRecord(
@@ -138,7 +140,7 @@ func checkHomeConfigAppToml(configPath string, nodeType types.NodeType) *types.A
 		} else if isSnapshotNode {
 			fatalRecord(
 				"pruning set to 'nothing' in app.toml file, snapshot not should be configured properly for snapshot purpose",
-				"set pruning to custom 100/10",
+				fmt.Sprintf("set pruning to custom %d/10", recommendPruningCustomKeepRecent),
 			)
 		}
 	case constants.PruningEverything:
@@ -180,8 +182,11 @@ func checkHomeConfigAppToml(configPath string, nodeType types.NodeType) *types.A
 	}
 
 	if isSnapshotNode {
-		if app.Pruning != constants.PruningCustom || app.PruningKeepRecent != "100" || app.PruningInterval != "10" {
-			warnRecord("snapshot node should use pruning custom 100/10 in app.toml file", "set pruning to custom 100/10")
+		if app.Pruning != constants.PruningCustom || app.PruningKeepRecent != fmt.Sprintf("%d", recommendPruningCustomKeepRecent) || app.PruningInterval != "10" {
+			warnRecord(
+				fmt.Sprintf("snapshot node should use pruning custom %d/10 in app.toml file", recommendPruningCustomKeepRecent),
+				fmt.Sprintf("set pruning to custom %d/10", recommendPruningCustomKeepRecent),
+			)
 		}
 	}
 
@@ -199,7 +204,10 @@ func checkHomeConfigAppToml(configPath string, nodeType types.NodeType) *types.A
 				fatalRecord("pruning-keep-recent is too low in app.toml file", "")
 			}
 		} else {
-			fatalRecord("pruning-keep-recent is empty in app.toml file", "set pruning-keep-recent to 100")
+			fatalRecord(
+				"pruning-keep-recent is empty in app.toml file",
+				fmt.Sprintf("set pruning-keep-recent to %d", recommendPruningCustomKeepRecent),
+			)
 		}
 
 		if app.PruningInterval != "" {
