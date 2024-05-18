@@ -24,3 +24,9 @@ nmngd gen-nginx \
   [--rest-port 1317] \
   [--jsonrpc-port 8545]
 ```
+
+## Generate SSH keys
+```bash
+nmngd keys add-snapshot-upload-ssh-key
+# nmngd keys ss
+```
