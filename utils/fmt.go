@@ -13,7 +13,7 @@ func PrintfStdErr(format string, a ...any) {
 	_, _ = fmt.Fprintf(os.Stderr, format, a...)
 }
 
-func ExitWithErrorMsg(error string) {
+func ExitWithErrorMsg(error ...any) {
 	PrintlnStdErr()
 	PrintlnStdErr(error)
 	os.Exit(1)
