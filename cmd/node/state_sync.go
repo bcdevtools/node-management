@@ -5,6 +5,7 @@ import (
 	"github.com/bcdevtools/node-management/types"
 	"github.com/bcdevtools/node-management/utils"
 	"github.com/bcdevtools/node-management/validation"
+	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
 	"os"
 	"os/exec"
@@ -197,6 +198,28 @@ func GetStateSyncCmd() *cobra.Command {
 				utils.ExitWithErrorMsg("ERR: config file does not exist:", configFilePath)
 				return
 			}
+			bz, err := os.ReadFile(configFilePath)
+			if err != nil {
+				utils.ExitWithErrorMsg("ERR: failed to read config.toml file:", err)
+				return
+			}
+			var config types.ConfigToml
+			err = toml.Unmarshal(bz, &config)
+			if err != nil {
+				utils.ExitWithErrorMsg("ERR: failed to unmarshal config.toml file:", err)
+				return
+			}
+			if config.RPC == nil || config.RPC.LAddr == "" {
+				utils.ExitWithErrorMsg("ERR: rpc section, address is not set in config.toml")
+				return
+			}
+			stateSyncNodeRpc := strings.TrimSpace(config.RPC.LAddr)
+			stateSyncNodeRpc = strings.TrimPrefix(stateSyncNodeRpc, "tcp://")
+			stateSyncNodeRpc = strings.TrimSuffix(stateSyncNodeRpc, "/")
+			//goland:noinspection HttpUrlsUsage
+			if !strings.HasPrefix(stateSyncNodeRpc, "http://") {
+				stateSyncNodeRpc = "http://" + stateSyncNodeRpc
+			}
 
 			var modernSed bool
 			launchSed := func(pattern string) {
@@ -284,7 +307,7 @@ func GetStateSyncCmd() *cobra.Command {
 
 				time.Sleep(30 * time.Second)
 
-				output, ec = utils.LaunchAppAndGetOutput("/bin/bash", []string{"-c", fmt.Sprintf("curl -s %s/status | jq -r .result.sync_info.catching_up", rpc)})
+				output, ec = utils.LaunchAppAndGetOutput("/bin/bash", []string{"-c", fmt.Sprintf("curl -s %s/status | jq -r .result.sync_info.catching_up", stateSyncNodeRpc)})
 				if ec != 0 {
 					utils.PrintlnStdErr("ERR: failed to get catching_up from rpc")
 					continue
