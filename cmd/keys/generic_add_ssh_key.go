@@ -16,9 +16,11 @@ func addSshKey(keyName string) {
 		utils.ExitWithErrorMsgf(`ERR: failed to check key file at %s
 %v
 `, keyPath, err)
+		return
 	}
 	if exists {
 		utils.ExitWithErrorMsgf("ERR: key file %s already exists\n", keyPath)
+		return
 	}
 
 	fmt.Println("Creating key file", keyName)
@@ -26,11 +28,13 @@ func addSshKey(keyName string) {
 	fmt.Println("\nConfirm? (y/n)")
 	if !utils.ReadYesNo() {
 		utils.ExitWithErrorMsg("ERR: operation canceled")
+		return
 	}
 
 	ec := utils.LaunchApp("ssh-keygen", []string{"-t", "ed25519", "-C", keyName, "-f", keyPath, "-N", ""})
 	if ec != 0 {
 		utils.ExitWithErrorMsgf("ERR: ssh-keygen exited with code %d\n", ec)
+		return
 	}
 	fmt.Println("Key file created successfully at", keyPath)
 }
@@ -44,6 +48,7 @@ func prepareSshDir() string {
 		utils.ExitWithErrorMsgf(`ERR: failed to check .ssh directory at %s
 %v
 `, sshDir, err)
+		return ""
 	}
 	if !exists {
 		fmt.Println("Creating .ssh directory at", sshDir)
@@ -52,10 +57,12 @@ func prepareSshDir() string {
 			utils.ExitWithErrorMsgf(`ERR: failed to create .ssh directory at %s
 %v
 `, sshDir, err)
+			return ""
 		}
 	}
 	if !isDir {
 		utils.ExitWithErrorMsgf("ERR: %s is not a directory\n", sshDir)
+		return ""
 	}
 
 	return sshDir

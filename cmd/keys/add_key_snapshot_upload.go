@@ -37,7 +37,7 @@ func GetAddSnapshotUploadKeyCmd() *cobra.Command {
 				sb.WriteString("_testnet")
 			}
 			sb.WriteString("_")
-			sb.WriteString(strings.ReplaceAll(time.Now().UTC().Format(time.DateOnly), "-", "_"))
+			sb.WriteString(utils.GetDateTimeStringCompatibleWithFileName(time.Now().UTC(), time.DateOnly))
 
 			id := sb.String()
 

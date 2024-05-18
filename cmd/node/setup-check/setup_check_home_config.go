@@ -749,20 +749,6 @@ func checkHomeConfigPrivValidatorKeyJson(configPath string) {
 		fatalRecord("priv_validator_key.json file is not writable by user", "chmod 600 "+privValidatorJsonFilePath)
 	}
 
-	type privKey struct {
-		Type  string `json:"type"`
-		Value string `json:"value"`
-	}
-	type pubKey struct {
-		Type  string `json:"type"`
-		Value string `json:"value"`
-	}
-	type privValidatorKey struct {
-		PrivKey *privKey `json:"priv_key"`
-		PubKey  *pubKey  `json:"pub_key"`
-		Address string   `json:"address"`
-	}
-
 	bz, err := os.ReadFile(privValidatorJsonFilePath)
 	if err != nil {
 		exitWithErrorMsgf("ERR: failed to read priv_validator_key.json file at %s: %v\n", privValidatorJsonFilePath, err)
@@ -774,7 +760,7 @@ func checkHomeConfigPrivValidatorKeyJson(configPath string) {
 		return
 	}
 
-	var nk privValidatorKey
+	var nk types.PrivValidatorKey
 	err = json.Unmarshal(bz, &nk)
 	if err != nil {
 		exitWithErrorMsgf("ERR: failed to unmarshal priv_validator_key.json file at %s: %v\n", privValidatorJsonFilePath, err)

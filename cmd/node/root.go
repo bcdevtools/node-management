@@ -13,6 +13,9 @@ func GetNodeCommands() *cobra.Command {
 	}
 
 	cmd.AddCommand(setup_check.GetStepCheckCmd())
+	cmd.AddCommand(GetExtractAddrBookCmd())
+	cmd.AddCommand(GetPruneAddrBookCmd())
+	cmd.AddCommand(GetPruneNodeDataCmd())
 
 	return cmd
 
