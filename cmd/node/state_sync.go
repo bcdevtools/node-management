@@ -44,26 +44,10 @@ func GetStateSyncCmd() *cobra.Command {
 			rpc, _ := cmd.Flags().GetString(flagRpc)
 			maxDuration, _ := cmd.Flags().GetDuration(flagMaxDuration)
 
-			if nodeHomeDirectory == "" {
-				utils.ExitWithErrorMsg("ERR: required input home directory")
-				return
-			}
-			_, exists, isDir, err := utils.FileInfo(nodeHomeDirectory)
-			if err != nil {
-				utils.ExitWithErrorMsg("ERR: failed to check node home directory:", err)
-				return
-			}
-			if !exists {
-				utils.ExitWithErrorMsg("ERR: node home directory does not exist:", nodeHomeDirectory)
-				return
-			}
-			if !isDir {
-				utils.ExitWithErrorMsg("ERR: specified path is not a directory:", nodeHomeDirectory)
-				return
-			}
+			validateNodeHomeDirectory(nodeHomeDirectory)
 
 			dataDirPath := path.Join(nodeHomeDirectory, "data")
-			_, exists, isDir, err = utils.FileInfo(dataDirPath)
+			_, exists, isDir, err := utils.FileInfo(dataDirPath)
 			if err != nil {
 				utils.ExitWithErrorMsg("ERR: failed to check data directory:", err)
 				return
