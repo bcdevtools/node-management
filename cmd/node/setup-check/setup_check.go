@@ -22,14 +22,13 @@ const (
 
 var waitGroup sync.WaitGroup
 
-func GetCheckCmd() *cobra.Command {
+func GetStepCheckCmd() *cobra.Command {
 	validTargetValues := strings.Join(types.AllNodeTypeNames(), "/")
 
 	var cmd = &cobra.Command{
-		Use:     "check [home]",
-		Aliases: []string{},
-		Args:    cobra.ExactArgs(1),
-		Short:   "Check node setup",
+		Use:   "setup-check [home]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Check node setup",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println("App version", constants.VERSION)
 			fmt.Println("NOTICE: always update to latest version for accurate check")

@@ -10,7 +10,7 @@ cd ~ && go install github.com/bcdevtools/node-management/cmd/nmngd@latest
 - Archival node
 
 ```bash
-nmngd check ~/.node_home --type validator/rpc/snapshot/archival
+nmngd node setup-check ~/.node_home --type validator/rpc/snapshot/archival
 ```
 
 ## Nginx config generator

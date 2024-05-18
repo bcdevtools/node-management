@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	setup_check "github.com/bcdevtools/node-management/cmd/setup-check"
+	"github.com/bcdevtools/node-management/cmd/node"
 	"github.com/bcdevtools/node-management/constants"
 	"github.com/spf13/cobra"
 	"os"
@@ -26,5 +26,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(setup_check.GetCheckCmd())
+	rootCmd.AddCommand(node.GetNodeCommands())
 }
