@@ -22,10 +22,15 @@ type TxIndexConfigToml struct {
 	Indexer string `toml:"indexer"`
 }
 
+type RpcConfigToml struct {
+	LAddr string `toml:"laddr"`
+}
+
 type ConfigToml struct {
 	Moniker   string               `toml:"moniker"`
 	P2P       *P2pConfigToml       `toml:"p2p"`
 	StateSync *StateSyncConfigToml `toml:"statesync"`
 	Consensus *ConsensusConfigToml `toml:"consensus"`
 	TxIndex   *TxIndexConfigToml   `toml:"tx_index"`
+	RPC       *RpcConfigToml       `toml:"rpc"`
 }
