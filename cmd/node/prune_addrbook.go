@@ -58,7 +58,12 @@ func GetPruneAddrBookCmd() *cobra.Command {
 				utils.ExitWithErrorMsg("ERR: failed to re-write file:", err)
 				return
 			}
-			fmt.Println("Pruned successfully, keep", len(livePeers), "live-peers.")
+
+			if len(livePeers) > 0 {
+				fmt.Println("Pruned successfully, keep", len(livePeers), "live-peers.")
+			} else {
+				fmt.Println("Pruned successfully but no peer left.")
+			}
 		},
 	}
 

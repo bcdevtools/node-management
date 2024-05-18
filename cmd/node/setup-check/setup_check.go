@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 	"net/http"
 	"os"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -30,6 +29,8 @@ func GetStepCheckCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Short: "Check node setup",
 		Run: func(cmd *cobra.Command, args []string) {
+			utils.MustNotUserRoot()
+
 			fmt.Println("App version", constants.VERSION)
 			fmt.Println("NOTICE: always update to latest version for accurate check")
 			go checkLatestRelease()
@@ -42,8 +43,7 @@ func GetStepCheckCmd() *cobra.Command {
 				return
 			}
 
-			isLinux := runtime.GOOS == "linux"
-			requireServiceFileForValidatorOnLinux := nodeType == types.ValidatorNode && isLinux
+			requireServiceFileForValidatorOnLinux := nodeType == types.ValidatorNode && utils.IsLinux()
 
 			serviceFilePath, _ := cmd.Flags().GetString(flagServiceFile)
 			if requireServiceFileForValidatorOnLinux && serviceFilePath == "" {

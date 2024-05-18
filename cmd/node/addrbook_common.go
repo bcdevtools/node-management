@@ -26,6 +26,10 @@ func readAddrBook(inputFilePath string) (*types.AddrBook, error) {
 func getLivePeers(addrBook *types.AddrBook, validDuration time.Duration) []*types.KnownAddress {
 	var livePeers []*types.KnownAddress
 	for _, addr := range addrBook.Addrs {
+		if addr.Addr == nil {
+			continue
+		}
+
 		if addr.LastSuccess.IsZero() || addr.LastAttempt.IsZero() { // means not any success
 			continue
 		}

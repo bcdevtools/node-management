@@ -15,7 +15,7 @@ func PrintfStdErr(format string, a ...any) {
 
 func ExitWithErrorMsg(error ...any) {
 	PrintlnStdErr()
-	PrintlnStdErr(error)
+	PrintlnStdErr(error...)
 	os.Exit(1)
 }
 

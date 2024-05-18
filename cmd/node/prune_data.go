@@ -5,6 +5,7 @@ import (
 	"github.com/bcdevtools/node-management/constants"
 	"github.com/bcdevtools/node-management/types"
 	"github.com/bcdevtools/node-management/utils"
+	"github.com/bcdevtools/node-management/validation"
 	"github.com/spf13/cobra"
 	"os"
 	"path"
@@ -28,12 +29,12 @@ func GetPruneNodeDataCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			utils.MustNotUserRoot()
 
-			inputHomeDirectory := strings.TrimSpace(args[0])
+			nodeHomeDirectory := strings.TrimSpace(args[0])
 			binary, _ := cmd.Flags().GetString(flagBinary)
 			backupPrivValStateJson, _ := cmd.Flags().GetString(flagBackupPrivValStateJson)
 			restorePrivValStateJson, _ := cmd.Flags().GetBool(flagRestorePrivValStateJson)
 
-			if inputHomeDirectory == "" {
+			if nodeHomeDirectory == "" {
 				utils.ExitWithErrorMsg("ERR: required input home directory")
 				return
 			}
@@ -42,22 +43,9 @@ func GetPruneNodeDataCmd() *cobra.Command {
 				utils.ExitWithErrorMsgf("ERR: required flag --%s\n", flagBinary)
 				return
 			}
-			if strings.Contains(binary, "/") {
-				_, exists, isDir, err := utils.FileInfo(binary)
-				if err != nil {
-					utils.ExitWithErrorMsg("ERR: failed to check binary path:", err)
-					return
-				}
-				if !exists {
-					utils.ExitWithErrorMsg("ERR: specified binary does not exist:", binary)
-					return
-				}
-				if isDir {
-					utils.ExitWithErrorMsg("ERR: specified binary is a directory:", binary)
-					return
-				}
-			} else if !utils.HasBinaryName(binary) {
-				utils.ExitWithErrorMsg("ERR: binary name ", binary, "might not available in $PATH")
+			if err := validation.ValidateNodeBinary(binary); err != nil {
+				utils.ExitWithErrorMsg("ERR:", err.Error())
+				return
 			}
 
 			ensureDirExists := func(path string) {
@@ -73,8 +61,8 @@ func GetPruneNodeDataCmd() *cobra.Command {
 				}
 			}
 
-			configDir := path.Join(inputHomeDirectory, "config")
-			dataDir := path.Join(inputHomeDirectory, "data")
+			configDir := path.Join(nodeHomeDirectory, "config")
+			dataDir := path.Join(nodeHomeDirectory, "data")
 
 			ensureDirExists(configDir)
 			ensureDirExists(dataDir)
@@ -187,7 +175,7 @@ func GetPruneNodeDataCmd() *cobra.Command {
 				additionalBackupPrivStateJsonFilePath = additionalBackupFile
 			}
 
-			pruneArgs := []string{"tendermint", "unsafe-reset-all", "--home", inputHomeDirectory, "--keep-addr-book"}
+			pruneArgs := []string{"tendermint", "unsafe-reset-all", "--home", nodeHomeDirectory, "--keep-addr-book"}
 
 			const sleepTime = 30 * time.Second
 			fmt.Println("INF: Going to run the following command after", sleepTime)
