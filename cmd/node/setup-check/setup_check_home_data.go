@@ -1,10 +1,8 @@
 package setup_check
 
 import (
-	"encoding/json"
 	"github.com/bcdevtools/node-management/types"
 	"github.com/bcdevtools/node-management/utils"
-	"os"
 	"path"
 )
 
@@ -53,29 +51,14 @@ func checkHomeData(home string, nodeType types.NodeType) {
 		fatalRecord("priv_validator_state.json has invalid permission", "chmod 600 "+privValidatorStateFilePath)
 	}
 
-	type privateValidatorState struct {
-		Height    string `json:"height"`
-		Round     int    `json:"round"`
-		Step      int    `json:"step"`
-		Signature string `json:"signature"`
-		SignBytes string `json:"signbytes"`
-	}
-
-	var pvs privateValidatorState
-	bz, err := os.ReadFile(privValidatorStateFilePath)
+	pvs := &types.PrivateValidatorState{}
+	err = pvs.LoadFromJSONFile(privValidatorStateFilePath)
 	if err != nil {
-		exitWithErrorMsgf("ERR: failed to read priv_validator_state.json file: %v\n", err)
+		exitWithErrorMsgf("ERR: failed to load priv_validator_state.json file: %v\n", err)
 		return
 	}
 
-	err = json.Unmarshal(bz, &pvs)
-	if err != nil {
-		exitWithErrorMsgf("ERR: failed to unmarshal priv_validator_state.json file: %v\n", err)
-		return
-	}
-
-	if pvs.Height == "0" && pvs.Round == 0 && pvs.Step == 0 && pvs.Signature == "" && pvs.SignBytes == "" {
-		// empty
+	if pvs.IsEmpty() {
 		if nodeType == types.ValidatorNode {
 			fatalRecord("priv_validator_state.json is empty", "can be ignored if this is a fresh validator node")
 		}

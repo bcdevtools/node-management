@@ -12,6 +12,8 @@ cd ~ && go install github.com/bcdevtools/node-management/cmd/nmngd@latest
 ```bash
 nmngd node setup-check ~/.node_home --type validator/rpc/snapshot/archival
 nmngd node extract-addrbook ~/.node_home_source/config/addrbook.json ~/.node_home_dst/config/addrbook.json
+nmngd node prune-addrbook ~/.node_home/config/addrbook.json
+nmngd node prune-data ~/.node_home --binary xxxd [--backup-pvs ~/priv_validator_state.json.backup]
 ```
 
 ## Nginx config generator

@@ -26,7 +26,7 @@ func GetStepCheckCmd() *cobra.Command {
 	validTargetValues := strings.Join(types.AllNodeTypeNames(), "/")
 
 	var cmd = &cobra.Command{
-		Use:   "setup-check [home]",
+		Use:   "setup-check [node_home]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Check node setup",
 		Run: func(cmd *cobra.Command, args []string) {
