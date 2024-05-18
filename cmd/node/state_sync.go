@@ -2,6 +2,7 @@ package node
 
 import (
 	"fmt"
+	"github.com/bcdevtools/node-management/types"
 	"github.com/bcdevtools/node-management/utils"
 	"github.com/bcdevtools/node-management/validation"
 	"github.com/spf13/cobra"
@@ -83,6 +84,27 @@ func GetStateSyncCmd() *cobra.Command {
 			}
 			if exists {
 				utils.ExitWithErrorMsg("ERR:", dataDirPath, "is not empty, require reset data")
+				return
+			}
+
+			privValStateJsonFilePath := path.Join(dataDirPath, "priv_validator_state.json")
+			_, exists, _, err = utils.FileInfo(privValStateJsonFilePath)
+			if err != nil {
+				utils.ExitWithErrorMsg("ERR: failed to check priv_validator_state.json file:", err)
+				return
+			}
+			if !exists {
+				utils.ExitWithErrorMsg("ERR: priv_validator_state.json file does not exist:", privValStateJsonFilePath)
+				return
+			}
+			pvs := &types.PrivateValidatorState{}
+			err = pvs.LoadFromJSONFile(privValStateJsonFilePath)
+			if err != nil {
+				utils.ExitWithErrorMsg("ERR: failed to load priv_validator_state.json file:", err)
+				return
+			}
+			if !pvs.IsEmpty() {
+				utils.ExitWithErrorMsg("ERR: priv_validator_state.json file is not empty")
 				return
 			}
 
