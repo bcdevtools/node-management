@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/pkg/errors"
 	"os"
+	"strconv"
 )
 
 type PrivateValidatorState struct {
@@ -28,6 +29,43 @@ func (pvs *PrivateValidatorState) Equals(other *PrivateValidatorState) bool {
 		pvs.Step == other.Step &&
 		pvs.Signature == other.Signature &&
 		pvs.SignBytes == other.SignBytes
+}
+
+func (pvs *PrivateValidatorState) CompareState(other *PrivateValidatorState) (cmp int, differentSigns bool) {
+	var heightPvs, heightOther int64
+	var err error
+	if pvs.Height != "0" {
+		heightPvs, err = strconv.ParseInt(pvs.Height, 10, 64)
+		if err != nil {
+			panic(errors.Wrap(err, "failed to parse private validator state height"))
+		}
+	}
+	if other.Height != "0" {
+		heightOther, err = strconv.ParseInt(other.Height, 10, 64)
+		if err != nil {
+			panic(errors.Wrap(err, "failed to parse other private validator state height"))
+		}
+	}
+
+	if heightPvs < heightOther {
+		return -1, true
+	} else if heightPvs > heightOther {
+		return 1, true
+	}
+
+	if pvs.Round < other.Round {
+		return -1, true
+	} else if pvs.Round > other.Round {
+		return 1, true
+	}
+
+	if pvs.Step < other.Step {
+		return -1, true
+	} else {
+		return 1, true
+	}
+
+	return 0, pvs.Signature == other.Signature && pvs.SignBytes == other.SignBytes
 }
 
 func (pvs *PrivateValidatorState) LoadFromJSONFile(filePath string) error {

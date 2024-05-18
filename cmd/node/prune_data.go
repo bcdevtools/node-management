@@ -202,6 +202,28 @@ func GetPruneNodeDataCmd() *cobra.Command {
 			}
 			time.Sleep(sleepTime)
 
+			if additionalBackupPrivStateJsonFilePath != "" {
+				// double check content not changed
+				pvs := &types.PrivateValidatorState{}
+				err = pvs.LoadFromJSONFile(filePathPrivValState)
+				if err != nil {
+					utils.ExitWithErrorMsg("ERR: failed to load", fileNamePrivValState, ": %v\n", err)
+					return
+				}
+
+				pvsBackup := &types.PrivateValidatorState{}
+				err = pvsBackup.LoadFromJSONFile(additionalBackupPrivStateJsonFilePath)
+				if err != nil {
+					utils.ExitWithErrorMsg("ERR: failed to load backup file", additionalBackupPrivStateJsonFilePath, ":", err)
+					return
+				}
+
+				if !pvs.Equals(pvsBackup) {
+					utils.ExitWithErrorMsg("ERR: content of", fileNamePrivValState, "is changed after additional backup file created")
+					return
+				}
+			}
+
 			ec := utils.LaunchApp(binary, pruneArgs)
 			if ec != 0 {
 				utils.ExitWithErrorMsgf("ERR: %s exited with code %d\n", binary, ec)
@@ -247,13 +269,14 @@ func GetPruneNodeDataCmd() *cobra.Command {
 					return
 				}
 
-				fmt.Println("INF: Restored", fileNamePrivValState, "from backup file:", additionalBackupPrivStateJsonFilePath)
 				bz, err = os.ReadFile(filePathPrivValState)
 				if err != nil {
 					utils.ExitWithErrorMsg("ERR: failed to read file", fileNamePrivValState, " for confirmation:", err)
 					return
 				}
 				fmt.Println(string(bz))
+
+				fmt.Println("INF: Successfully restored", fileNamePrivValState)
 			}
 		},
 	}
