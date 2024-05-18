@@ -1,6 +1,7 @@
 .DS_Store
 .idea/
 *.swp
+*.tar.lz4
 
 # Binaries for programs and plugins
 build/

@@ -34,10 +34,7 @@ func GetPruneNodeDataCmd() *cobra.Command {
 			backupPrivValStateJson, _ := cmd.Flags().GetString(flagBackupPrivValStateJson)
 			restorePrivValStateJson, _ := cmd.Flags().GetBool(flagRestorePrivValStateJson)
 
-			if nodeHomeDirectory == "" {
-				utils.ExitWithErrorMsg("ERR: required input home directory")
-				return
-			}
+			validateNodeHomeDirectory(nodeHomeDirectory)
 
 			if binary == "" {
 				utils.ExitWithErrorMsgf("ERR: required flag --%s\n", flagBinary)
