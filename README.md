@@ -18,9 +18,21 @@ nmngd node state-sync ~/.node_home --binary xxxd --rpc http://localhost:26657 [-
 nmngd node zip-snapshot ~/.node_home
 ```
 
-## Run Validator web server
+## Run web server
 ```bash
-nmngd web --port 8080 --node ~/.node_home
+nmngd start-web ~/.rpc-gaia \
+  --port 8080 \
+  --authorization-token "X" \
+  --chain-name "Cosmos Hub" \
+  --chain-id cosmoshub-4 \
+  --g-binary-name gaid \
+  --g-node-home-name .gaia \
+  --snapshot-file /snapshot/cosmos-mainnet/snapshot.tar.lz \
+  --snapshot-download-url https://cosmos.m.valoper.io/snapshot/snapshot.tar.lz \
+  --exr-rpc-url https://rpc1.cosmos.m.valoper.io \
+  --exr-rest-url https://rest1.cosmos.m.valoper.io \
+  --exr-favicon-url https://cosmos.m.valoper.io/favicon.ico \
+  --exr-logo-url https://cosmos.m.valoper.io/logo.png
 ```
 
 ## Nginx config generator
