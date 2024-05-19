@@ -31,9 +31,17 @@ const (
 	flagSnapshotDownloadURL = "snapshot-download-url"
 )
 
+const (
+	cmdStartWeb = "start-web"
+)
+
+const (
+	defaultWebPort = 8080
+)
+
 func GetStartWebCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "start-web [node_home]",
+		Use:   cmdStartWeb + " [node_home]",
 		Short: "Start Web service",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -175,7 +183,7 @@ func GetStartWebCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Uint16(flagPort, 8080, "port to bind Web service to")
+	cmd.Flags().Uint16(flagPort, defaultWebPort, "port to bind Web service to")
 	cmd.Flags().StringP(flagAuthorizationToken, "a", "", "authorization token")
 	cmd.Flags().Bool(flagDebug, false, "enable debug mode")
 

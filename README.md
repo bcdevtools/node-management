@@ -34,6 +34,10 @@ nmngd start-web ~/.rpc-gaia \
   --exr-favicon-url https://cosmos.m.valoper.io/favicon.ico \
   --exr-logo-url https://cosmos.m.valoper.io/logo.png
 ```
+Generate start command:
+```bash
+nmngd gen-start-web
+```
 
 ## Nginx config generator
 

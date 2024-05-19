@@ -85,6 +85,23 @@ func ReadNumber(min, max int64) int64 {
 	}
 }
 
+func ReadOptionalNumber(min, max, _default int64) int64 {
+	for {
+		text := readNormalizedText()
+		if text == "" {
+			return _default
+		}
+		number, err := strconv.ParseInt(text, 10, 64)
+		if err == nil {
+			if number >= min && number <= max {
+				return number
+			}
+		}
+
+		fmt.Println("Please enter a number between", min, "and", max)
+	}
+}
+
 func ReadText(allowEmpty bool) string {
 	for {
 		text := readText()
