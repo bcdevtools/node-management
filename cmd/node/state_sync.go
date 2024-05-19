@@ -18,12 +18,13 @@ import (
 )
 
 const (
-	flagAllowLocalBinary = "allow-local-binary"
-	flagAddressBook      = "address-book"
-	flagPeers            = "peers"
-	flagSeeds            = "seeds"
-	flagRpc              = "rpc"
-	flagMaxDuration      = "max-duration"
+	flagAllowLocalBinary            = "allow-local-binary"
+	flagAddressBook                 = "address-book"
+	flagPeers                       = "peers"
+	flagSeeds                       = "seeds"
+	flagRpc                         = "rpc"
+	flagMaxDuration                 = "max-duration"
+	flagXCrisisSkipAssertInvariants = "x-crisis-skip-assert-invariants"
 )
 
 func GetStateSyncCmd() *cobra.Command {
@@ -106,19 +107,6 @@ func GetStateSyncCmd() *cobra.Command {
 			}
 
 			configDirPath := path.Join(nodeHomeDirectory, "config")
-			_, exists, isDir, err = utils.FileInfo(configDirPath)
-			if err != nil {
-				utils.ExitWithErrorMsg("ERR: failed to check config directory:", err)
-				return
-			}
-			if !exists {
-				utils.ExitWithErrorMsg("ERR: config directory does not exist:", configDirPath)
-				return
-			}
-			if !isDir {
-				utils.ExitWithErrorMsg("ERR: required config path is not a directory:", configDirPath)
-				return
-			}
 
 			if binary == "" {
 				utils.ExitWithErrorMsgf("ERR: required flag --%s\n", flagBinary)
@@ -181,7 +169,7 @@ func GetStateSyncCmd() *cobra.Command {
 					return
 				}
 
-				livePeers := getLivePeers(addrBook, 5*time.Hour)
+				livePeers := addrBook.GetLivePeers(5 * time.Hour)
 
 				if len(livePeers) == 0 {
 					utils.PrintlnStdErr("WARN: no live peers found in provided address book")
@@ -301,7 +289,11 @@ func GetStateSyncCmd() *cobra.Command {
 			launchSed(`s|^(enable[[:space:]]+=[[:space:]]+).*$|\1true| ; s|^(rpc_servers[[:space:]]+=[[:space:]]+).*$|\1\"` + rpc + "," + rpc + `\"| ; s|^(trust_height[[:space:]]+=[[:space:]]+).*$|\1` + fmt.Sprintf("%d", blockHeight) + `| ; s|^(trust_hash[[:space:]]+=[[:space:]]+).*$|\1"` + trustHash + `"|`)
 			fmt.Println("INF: trust_height, rpc_servers, trust_hash and enable are updated in config file")
 
-			launchCmd := exec.Command(binary, []string{"start", "--home", nodeHomeDirectory}...)
+			startArgs := []string{"start", "--home", nodeHomeDirectory}
+			if cmd.Flags().Changed(flagXCrisisSkipAssertInvariants) {
+				startArgs = append(startArgs, fmt.Sprintf("--%s", flagXCrisisSkipAssertInvariants))
+			}
+			launchCmd := exec.Command(binary, startArgs...)
 			launchCmd.Stdout = os.Stdout
 			launchCmd.Stderr = os.Stderr
 			err = launchCmd.Start()
@@ -311,6 +303,7 @@ func GetStateSyncCmd() *cobra.Command {
 			}
 
 			expiry := time.Now().UTC().Add(maxDuration)
+
 		waitSync:
 			for {
 				if time.Now().UTC().After(expiry) {
@@ -350,6 +343,7 @@ func GetStateSyncCmd() *cobra.Command {
 	cmd.Flags().String(flagSeeds, "", "List of seeds to use for state sync")
 	cmd.Flags().String(flagRpc, "http://localhost:26657", "RPC address to use for state sync")
 	cmd.Flags().Duration(flagMaxDuration, 12*time.Hour, "Maximum duration to wait for state sync")
+	cmd.Flags().Bool(flagXCrisisSkipAssertInvariants, false, fmt.Sprintf("provide flag '--%s' to node run", flagXCrisisSkipAssertInvariants))
 
 	return cmd
 }
