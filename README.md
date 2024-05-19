@@ -18,6 +18,11 @@ nmngd node state-sync ~/.node_home --binary xxxd --rpc http://localhost:26657 [-
 nmngd node zip-snapshot ~/.node_home
 ```
 
+## Run Validator web server
+```bash
+nmngd web --port 8080 --node ~/.node_home
+```
+
 ## Nginx config generator
 
 ```bash

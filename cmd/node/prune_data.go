@@ -57,24 +57,8 @@ func GetPruneNodeDataCmd() *cobra.Command {
 				appMutex.ReleaseLockWL()
 			}()
 
-			ensureDirExists := func(path string) {
-				if _, exists, isDir, err := utils.FileInfo(path); err != nil {
-					utils.ExitWithErrorMsg("ERR: failed to check directory:", err)
-					return
-				} else if !exists {
-					utils.ExitWithErrorMsg("ERR: required directory does not exist:", path)
-					return
-				} else if !isDir {
-					utils.ExitWithErrorMsg("ERR: specified path is not a directory:", path)
-					return
-				}
-			}
-
 			configDir := path.Join(nodeHomeDirectory, "config")
 			dataDir := path.Join(nodeHomeDirectory, "data")
-
-			ensureDirExists(configDir)
-			ensureDirExists(dataDir)
 
 			filePathPrivValState := path.Join(dataDir, fileNamePrivValState)
 			if _, exists, isDir, err := utils.FileInfo(filePathPrivValState); err != nil {

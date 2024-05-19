@@ -4,6 +4,7 @@ package node
 import (
 	setup_check "github.com/bcdevtools/node-management/cmd/node/setup-check"
 	"github.com/bcdevtools/node-management/utils"
+	"github.com/bcdevtools/node-management/validation"
 	"github.com/spf13/cobra"
 )
 
@@ -24,21 +25,9 @@ func GetNodeCommands() *cobra.Command {
 }
 
 func validateNodeHomeDirectory(nodeHomeDirectory string) {
-	if nodeHomeDirectory == "" {
-		utils.ExitWithErrorMsg("ERR: required node home directory")
-		return
-	}
-	_, exists, isDir, err := utils.FileInfo(nodeHomeDirectory)
+	err := validation.PossibleNodeHome(nodeHomeDirectory)
 	if err != nil {
-		utils.ExitWithErrorMsg("ERR: failed to check node home directory:", err)
-		return
-	}
-	if !exists {
-		utils.ExitWithErrorMsg("ERR: node home directory does not exist:", nodeHomeDirectory)
-		return
-	}
-	if !isDir {
-		utils.ExitWithErrorMsg("ERR: specified path is not a directory:", nodeHomeDirectory)
+		utils.ExitWithErrorMsg("ERR: invalid node home directory:", err)
 		return
 	}
 }
