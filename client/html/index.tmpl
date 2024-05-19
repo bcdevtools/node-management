@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no"/>
+    <title>{[{ .title }]}</title>
+    <meta name="Description" content="{[{ .description }]}" />
+    <meta name="keywords" content="valoper.io, cosmos-sdk, cosmos, tendermint, {[{ .chainName }]}" />
+    <meta property="og:type" content="blockchain" />
+    <meta property="og:title" content="{[{ .title }]}" />
+    <meta property="og:site_name" content="{[{ .siteName }]}" />
+    <meta property="og:description" content="{[{ .description }]}" />
+    <meta property="og:image" content="{[{ .logo }]}" />
+    <meta property="og:image:url" content="{[{ .logo }]}" />
+    <meta property="og:image:alt" content="{[{ .siteName }]}" />
+    <meta name="twitter:card" content="{[{ .description }]}" />
+    <meta name="twitter:title" content="{[{ .siteName }]}" />
+    <meta property="twitter:description" content="{[{ .description }]}" />
+    <meta property="twitter:image" content="{[{ .logo }]}" />
+    <link rel="shortcut icon" href="{[{ .favicon }]}" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="/resources/site.css"/>
+    <style type="text/css">
+    </style>
+</head>
+<body>
+    <div id="main" class="container">
+        <h3 class="mt-3">{[{ .description }]}</h3>
+        <div class="m-3">
+            <img class="mini-chain-logo" src="{[{ .logo }]}" alt="logo" />
+        </div>
+        <div>
+            <p>Chain ID: {[{ .chainId }]}</p>
+            <p>Chain Name: {[{ .chainName }]}</p>
+            <p>RPC: <a href="{[{ .rpcUrl }]}" target="_blank">{[{ .rpcUrl }]}</a></p>
+            <p>API: <a href="{[{ .restUrl }]}" target="_blank">{[{ .restUrl }]}</a></p>
+            {[{ if .grpcUrl }]}
+                <p>GRPC: <a href="{[{ .grpcUrl }]}" target="_blank">{[{ .grpcUrl }]}</a></p>
+            {[{ end }]}
+        </div>
+        <div id="accordionMain" class="accordion">
+            <div class="accordion-item">
+                <h3 class="accordion-header" id="headingLivePeers">
+                    <span class="accordion-button cursor-pointer" data-bs-toggle="collapse" data-bs-target="#collapseLivePeers" aria-expanded="true" aria-controls="collapseLivePeers">
+                        Live Peers
+                    </span>
+                </h3>
+                <div id="collapseLivePeers" class="accordion-collapse collapse show" aria-labelledby="headingLivePeers" data-bs-parent="#accordionMain">
+                    <div class="card card-body">
+                        {[{ if gt .livePeersCount 0 }]}
+                        <p class="text-secondary">{[{ .livePeersCount }]} real-time live peers from our node:</p>
+                        <pre class="border p-2"><code>{[{ .livePeers }]}</code></pre>
+                        {[{ else }]}
+                        <h3 class="text-danger">Live peers temporary not available</h3>
+                        {[{ end }]}
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h3 class="accordion-header" id="headingSnapshot">
+                    <span class="accordion-button cursor-pointer" data-bs-toggle="collapse" data-bs-target="#collapseSnapshot" aria-expanded="true" aria-controls="collapseSnapshot">
+                        Snapshot
+                    </span>
+                </h3>
+                <div id="collapseSnapshot" class="accordion-collapse collapse show" aria-labelledby="headingSnapshot" data-bs-parent="#accordionMain">
+                    <div class="card card-body">
+                        {[{ if .snapshot.Error }]}
+                        <p class="text-danger">Snapshot information temporary not available</p>
+                        {[{ else }]}
+                        <div>
+                            <p>File size: {[{ .snapshot.Size }]}</p>
+                            <p>Updated: {[{ .snapshot.ModTime }]} ago</p>
+                            <p>Download: <a href="{[{ .snapshot.DownloadFilePath }]}">{[{ .snapshot.FileName }]}</a></p>
+                            <hr/>
+                            <h4>How to process {[{ .chainName }]} snapshot</h4>
+                            <p>Install lz4 is required, install if not yet installed</p>
+                            <pre class="border p-2"><code>sudo apt update &amp;&amp; sudo apt install snapd -y &amp;&amp; sudo snap install lz4</code></pre>
+                            <p>Download the snapshot</p>
+                            <pre class="border p-2"><code>wget -O {[{ .snapshot.FileName }]} {[{ .snapshot.DownloadFilePath }]}</code></pre>
+                            <p>Stop the node</p>
+                            <pre class="border p-2"><code>sudo systemctl stop {[{ .generalBinaryName }]}</code></pre>
+                            <p>
+                                Prepare <b>reset</b> your node. This will erase your node database.
+                                If you are already running validator, you <b>HAVE TO</b> backup up your <b>`priv_validator_key.json`</b>.
+                            </p>
+                            <pre class="border p-2"><code>cp ~/{[{ .generalNodeHomeName }]}/data/priv_validator_state.json ~/{[{ .generalNodeHomeName }]}/priv_validator_state.json</code></pre>
+                            <p>Verify <b>`priv_validator_key.json`</b> and the backup are equals</p>
+                            <pre class="border p-2"><code>sleep 10 &amp;&amp; cat ~/{[{ .generalNodeHomeName }]}/data/priv_validator_state.json &amp;&amp; cat ~/{[{ .generalNodeHomeName }]}/priv_validator_state.json</code></pre>
+                            <p>Reset your node</p>
+                            <pre class="border p-2"><code>{[{ .generalBinaryName }]} tendermint unsafe-reset-all --home $HOME/{[{ .generalNodeHomeName }]} --keep-addr-book</code></pre>
+                            <p>Decompress the snapshot to your database location. Your database location will be something like <b>`{[{ .generalNodeHomeName }]}`</b> depending on the node implementation.</p>
+                            <pre class="border p-2"><code>lz4 -c -d {[{ .snapshot.FileName }]} | tar -x -C $HOME/{[{ .generalNodeHomeName }]}/data</code></pre>
+                            <p><b>IMPORTANT:</b> If you run a validator node, be sure to restore the <b>`priv_validator_state.json`</b> file that you have backed up.</p>
+                            <pre class="border p-2"><code>mv ~/{[{ .generalNodeHomeName }]}/priv_validator_state.json ~/{[{ .generalNodeHomeName }]}/data/priv_validator_state.json</code></pre>
+                            <p>Restart the node</p>
+                            <pre class="border p-2"><code>sudo systemctl restart {[{ .generalBinaryName }]}</code></pre>
+                            <p>Remove the downloaded file to free-up disk space</p>
+                            <pre class="border p-2"><code>rm -v {[{ .snapshot.FileName }]}</code></pre>
+                            <p>Check log of the node</p>
+                            <pre class="border p-2"><code>sudo journalctl -fu {[{ .generalBinaryName }]}</code></pre>
+                            <div class="mt-2">
+                                <p>
+                                    <b>ADVANCED ROUTE: <span class="text-danger">(not for Validator node)</span></b> The above solution requires you to download the compressed file, uncompressed it and then delete the original file.
+                                    This requires extra storage space on your server.
+                                    You can run the following combo command to stream the snapshot into your database location.
+                                    For advanced users only:
+                                </p>
+                                <pre class="border p-2"><code>curl -o - -L {[{ .snapshot.DownloadFilePath }]} | lz4 -c -d - | tar -x -C $HOME/{[{ .generalNodeHomeName }]}</code></pre>
+                            </div>
+                        </div>
+                        {[{ end }]}
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h3 class="accordion-header" id="headingStateSync">
+                    <span class="accordion-button collapsed cursor-pointer" data-bs-toggle="collapse" data-bs-target="#collapseStateSync" aria-expanded="false" aria-controls="collapseStateSync">
+                        State sync
+                    </span>
+                </h3>
+                <div id="collapseStateSync" class="accordion-collapse collapse" aria-labelledby="headingStateSync" data-bs-parent="#accordionMain">
+                    <div class="card card-body">
+                        <h3 class="text-warn">Do not state-sync a validator node, instead state-sync a node and move data to validator node. Be sure backup and restore <b>`priv_validator_key.json`</b></h3>
+                        <p>Our state-sync RPC server for {[{ .chainName }]} is</p>
+                        <pre class="border p-2"><code>{[{ .rpcUrl }]}</code></pre>
+                        <p>
+                            Create a reusable shell script such as <b>`state_sync.sh`</b> with the following code.
+                            The code will fetch important state-sync information (such as block height and trust hash)
+                            from our server and update your <b>`config.toml`</b> file accordingly.
+                        </p>
+                        <pre class="border p-2"><code>#!/bin/bash
+
+            SNAP_RPC="{[{ .rpcUrl }]}"
+
+            LATEST_HEIGHT=$(curl -s $SNAP_RPC/block | jq -r .result.block.header.height); \
+            BLOCK_HEIGHT=$((LATEST_HEIGHT - 2000)); \
+            TRUST_HASH=$(curl -s "$SNAP_RPC/block?height=$BLOCK_HEIGHT" | jq -r .result.block_id.hash)
+
+            sed -i.bak -E "s|^(enable[[:space:]]+=[[:space:]]+).*$|\1true| ; \
+            s|^(rpc_servers[[:space:]]+=[[:space:]]+).*$|\1\"$SNAP_RPC,$SNAP_RPC\"| ; \
+            s|^(trust_height[[:space:]]+=[[:space:]]+).*$|\1$BLOCK_HEIGHT| ; \
+            s|^(trust_hash[[:space:]]+=[[:space:]]+).*$|\1\"$TRUST_HASH\"|" $HOME/{[{ .generalNodeHomeName }]}/config/config.toml</code></pre>
+                        {[{ if gt .livePeersCount 0 }]}
+                            <p>Consider adding live-peers above to <b>`persistent_peers`</b> in <b>`config.toml`</b></p>
+                        {[{ end }]}
+                        <p>Stop the node</p>
+                        <pre class="border p-2"><code>sudo systemctl stop {[{ .generalBinaryName }]}</code></pre>
+                        <p>Reset the node</p>
+                        <pre class="border p-2"><code>{[{ .generalBinaryName }]} tendermint unsafe-reset-all --home $HOME/{[{ .generalNodeHomeName }]} --keep-addr-book</code></pre>
+                        <p>Execute the script</p>
+                        <pre class="border p-2"><code>sh state_sync.sh</code></pre>
+                        <p>Restart the node</p>
+                        <pre class="border p-2"><code>sudo systemctl restart {[{ .generalBinaryName }]}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>
+</html>

@@ -2,11 +2,12 @@ package web_server
 
 import (
 	"fmt"
-	apitypes "github.com/bcdevtools/node-management/services/web_server/types"
+	webtypes "github.com/bcdevtools/node-management/services/web_server/types"
 	"github.com/bcdevtools/node-management/types"
 	"github.com/bcdevtools/node-management/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"slices"
 	"time"
 )
 
@@ -24,7 +25,7 @@ func HandleApiNodeLivePeers(c *gin.Context) {
 	w.PrepareDefaultSuccessResponse(peers).SendResponse()
 }
 
-func getLivePeers(cfg apitypes.Config) ([]string, error) {
+func getLivePeers(cfg webtypes.Config) ([]string, error) {
 	if peers := cacheNodePeers.GetRL(); peers != nil {
 		return peers.([]string), nil
 	}
@@ -44,6 +45,19 @@ func getLivePeers(cfg apitypes.Config) ([]string, error) {
 				livePeers = livePeers[:10]
 			}
 		}
+
+		slices.SortFunc(livePeers, func(left, right *types.KnownAddress) int {
+			leftConnected := !left.LastAttempt.After(left.LastSuccess)
+			rightConnected := !right.LastAttempt.After(right.LastSuccess)
+			if leftConnected == rightConnected {
+				return 0
+			}
+			if leftConnected {
+				return -1
+			} else {
+				return 1
+			}
+		})
 
 		peers := make([]string, len(livePeers))
 

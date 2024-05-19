@@ -43,6 +43,13 @@ func (tbc *TimeBasedCache) UpdateWL(funcUpdate func() (any, error), recheckCache
 	return newValue, nil
 }
 
+func (tbc *TimeBasedCache) RefreshExpiryWL() {
+	tbc.Lock()
+	defer tbc.Unlock()
+
+	tbc.expiry = time.Now().UTC().Add(tbc.cacheDuration)
+}
+
 func (tbc *TimeBasedCache) getRL(acquireLock bool) any {
 	if acquireLock {
 		tbc.RLock()
