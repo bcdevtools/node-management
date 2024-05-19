@@ -45,6 +45,18 @@ func GetPruneNodeDataCmd() *cobra.Command {
 				return
 			}
 
+			appMutex := types.NewAppMutex(nodeHomeDirectory, 4*time.Second)
+			if acquiredLock, err := appMutex.AcquireLockWL(); err != nil {
+				utils.ExitWithErrorMsg("ERR: failed to acquire lock single instance:", err)
+				return
+			} else if !acquiredLock {
+				utils.ExitWithErrorMsg("ERR: failed to acquire lock single instance")
+				return
+			}
+			defer func() {
+				appMutex.ReleaseLockWL()
+			}()
+
 			ensureDirExists := func(path string) {
 				if _, exists, isDir, err := utils.FileInfo(path); err != nil {
 					utils.ExitWithErrorMsg("ERR: failed to check directory:", err)

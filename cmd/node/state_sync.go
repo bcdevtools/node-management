@@ -46,6 +46,18 @@ func GetStateSyncCmd() *cobra.Command {
 			maxDuration, _ := cmd.Flags().GetDuration(flagMaxDuration)
 
 			validateNodeHomeDirectory(nodeHomeDirectory)
+			appMutex := types.NewAppMutex(nodeHomeDirectory, 8*time.Second)
+			if acquiredLock, err := appMutex.AcquireLockWL(); err != nil {
+				utils.ExitWithErrorMsg("ERR: failed to acquire lock single instance:", err)
+				return
+			} else if !acquiredLock {
+				utils.ExitWithErrorMsg("ERR: failed to acquire lock single instance")
+				return
+			}
+
+			defer func() {
+				appMutex.ReleaseLockWL()
+			}()
 
 			dataDirPath := path.Join(nodeHomeDirectory, "data")
 			_, exists, isDir, err := utils.FileInfo(dataDirPath)
@@ -299,6 +311,7 @@ func GetStateSyncCmd() *cobra.Command {
 			}
 
 			expiry := time.Now().UTC().Add(maxDuration)
+		waitSync:
 			for {
 				if time.Now().UTC().After(expiry) {
 					utils.ExitWithErrorMsg("ERR: state sync expired")
@@ -318,7 +331,7 @@ func GetStateSyncCmd() *cobra.Command {
 				case "false":
 					fmt.Println("INF: node is synced")
 					_ = launchCmd.Process.Kill()
-					os.Exit(0)
+					break waitSync
 				case "true":
 					fmt.Println("INF: node is catching up")
 					continue
