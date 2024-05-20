@@ -78,7 +78,7 @@ func (am *AppMutex) AcquireLockWL() (bool, error) {
 				return am.aborted
 			}()
 			if aborted {
-				_ = os.Remove(am.lockFilePath())
+				am.removeLockFile()
 				break
 			}
 
@@ -160,6 +160,11 @@ func (am *AppMutex) ReleaseLockWL() {
 	defer mutexAppMutex.Unlock()
 
 	am.aborted = true
+	am.removeLockFile()
+}
+
+func (am *AppMutex) removeLockFile() {
+	_ = os.Remove(am.lockFilePath())
 }
 
 func (am *AppMutex) lockFilePath() string {
