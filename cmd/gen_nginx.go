@@ -17,6 +17,8 @@ const (
 	flagRestPort      = "rest-port"
 	flagJsonRpcDomain = "jsonrpc"
 	flagJsonRpcPort   = "jsonrpc-port"
+	flagWebDomain     = "web"
+	flagWebPort       = "web-port"
 )
 
 func GetGenNginxCmd() *cobra.Command {
@@ -34,9 +36,11 @@ func GetGenNginxCmd() *cobra.Command {
 			rpcDomain, _ := cmd.Flags().GetString(flagRpcDomain)
 			restDomain, _ := cmd.Flags().GetString(flagRestDomain)
 			jsonRpcDomain, _ := cmd.Flags().GetString(flagJsonRpcDomain)
+			webDomain, _ := cmd.Flags().GetString(flagWebDomain)
 			rpcPort, _ := cmd.Flags().GetUint16(flagRpcPort)
 			restPort, _ := cmd.Flags().GetUint16(flagRestPort)
 			jsonRpcPort, _ := cmd.Flags().GetUint16(flagJsonRpcPort)
+			webPort, _ := cmd.Flags().GetUint16(flagWebPort)
 
 			// normalize
 			normalizeEndpoint := func(endpoint string) string {
@@ -46,17 +50,19 @@ func GetGenNginxCmd() *cobra.Command {
 			rpcDomain = normalizeEndpoint(rpcDomain)
 			restDomain = normalizeEndpoint(restDomain)
 			jsonRpcDomain = normalizeEndpoint(jsonRpcDomain)
+			webDomain = normalizeEndpoint(webDomain)
 
 			// validate domains
 
 			isGenRpcConf := rpcDomain != ""
 			isGenRestConf := restDomain != ""
 			isGenJsonRpcConf := jsonRpcDomain != ""
+			isGenWebConf := webDomain != ""
 
-			if !isGenRpcConf && !isGenRestConf && !isGenJsonRpcConf {
+			if !isGenRpcConf && !isGenRestConf && !isGenJsonRpcConf && !isGenWebConf {
 				utils.ExitWithErrorMsgf(
-					"ERR: require at least one domain to generate, specify by flags --%s, --%s and --%s\n",
-					flagRpcDomain, flagRestDomain, flagJsonRpcDomain,
+					"ERR: require at least one domain to generate, specify by flags --%s, --%s, --%s and --%s\n",
+					flagRpcDomain, flagRestDomain, flagJsonRpcDomain, flagWebDomain,
 				)
 				return
 			}
@@ -106,6 +112,10 @@ Suggest: rpc/rest/json_rpc.testnet.my_chain.example.com`, domain)
 				validateDomain(jsonRpcDomain)
 				toBeGeneratedDomains = append(toBeGeneratedDomains, jsonRpcDomain)
 			}
+			if isGenWebConf {
+				validateDomain(webDomain)
+				toBeGeneratedDomains = append(toBeGeneratedDomains, webDomain)
+			}
 
 			uniqueTracker := make(map[string]bool)
 			for _, domain := range toBeGeneratedDomains {
@@ -138,6 +148,9 @@ Suggest: rpc/rest/json_rpc.testnet.my_chain.example.com`, domain)
 			if isGenJsonRpcConf {
 				validatePort(jsonRpcPort)
 			}
+			if isGenWebConf {
+				validatePort(webPort)
+			}
 
 			// check exists
 
@@ -145,6 +158,7 @@ Suggest: rpc/rest/json_rpc.testnet.my_chain.example.com`, domain)
 			fileRpcConf := fmt.Sprintf("%s.conf", rpcDomain)
 			fileRestConf := fmt.Sprintf("%s.conf", restDomain)
 			fileJsonRpcConf := fmt.Sprintf("%s.conf", jsonRpcDomain)
+			fileWebConf := fmt.Sprintf("%s.conf", webDomain)
 
 			checkConfFileExists := func(file string) {
 				_, exists, _, err := utils.FileInfo(file)
@@ -168,6 +182,9 @@ Suggest: rpc/rest/json_rpc.testnet.my_chain.example.com`, domain)
 			if isGenJsonRpcConf {
 				checkConfFileExists(fileJsonRpcConf)
 			}
+			if isGenWebConf {
+				checkConfFileExists(fileWebConf)
+			}
 
 			// generate
 
@@ -181,6 +198,9 @@ Suggest: rpc/rest/json_rpc.testnet.my_chain.example.com`, domain)
 			if isGenJsonRpcConf {
 				writeJsonRpcConfFile(jsonRpcDomain, jsonRpcPort, fileJsonRpcConf)
 			}
+			if isGenWebConf {
+				writeWebConfFile(webDomain, webPort, fileWebConf)
+			}
 
 			fmt.Println("Generated nginx configuration files successfully:")
 			fmt.Println("-", fileSharedConf)
@@ -193,6 +213,9 @@ Suggest: rpc/rest/json_rpc.testnet.my_chain.example.com`, domain)
 			if isGenJsonRpcConf {
 				fmt.Println("-", fileJsonRpcConf)
 			}
+			if isGenWebConf {
+				fmt.Println("-", fileWebConf)
+			}
 
 			fmt.Println("\nGenerated! Copy these files to your nginx configuration directory and reload nginx")
 			fmt.Printf("\n**WARN** Beware of overriding this file if you have existing configuration!!! sudo cp %s /etc/nginx/conf.d/\n", path.Join(workingDir, fileSharedConf))
@@ -204,6 +227,9 @@ Suggest: rpc/rest/json_rpc.testnet.my_chain.example.com`, domain)
 			}
 			if isGenJsonRpcConf {
 				fmt.Printf("sudo cp %s /etc/nginx/conf.d/\n", path.Join(workingDir, fileJsonRpcConf))
+			}
+			if isGenWebConf {
+				fmt.Printf("sudo cp %s /etc/nginx/conf.d/\n", path.Join(workingDir, fileWebConf))
 			}
 			fmt.Println("sudo chown root:root /etc/nginx/conf.d/*.conf")
 			fmt.Println("sudo chmod 644 /etc/nginx/conf.d/*.conf")
@@ -218,6 +244,8 @@ Suggest: rpc/rest/json_rpc.testnet.my_chain.example.com`, domain)
 	cmd.Flags().Uint16(flagRestPort, 1317, "Port of Rest API to proxy")
 	cmd.Flags().String(flagJsonRpcDomain, "", "Domain to expose Ethereum Json-RPC")
 	cmd.Flags().Uint16(flagJsonRpcPort, 8545, "Port of Ethereum Json-RPC to proxy")
+	cmd.Flags().String(flagWebDomain, "", "Domain to expose Web server")
+	cmd.Flags().Uint16(flagWebPort, 8080, "Port of Web server to proxy")
 
 	return cmd
 }
@@ -414,6 +442,59 @@ server {
 
 	if err != nil {
 		utils.ExitWithErrorMsgf("ERR: failed to write RPC conf file: %v\n", err)
+		return
+	}
+}
+
+func writeWebConfFile(domain string, port uint16, fileName string) {
+	upstreamName := fmt.Sprintf("upsw_%s", strings.ReplaceAll(domain, ".", "_"))
+
+	snapshotDir := "/valoper-snapshot/xxx-testnet"
+
+	snapshotDir = strings.TrimSuffix(snapshotDir, "/")
+
+	//goland:noinspection HttpUrlsUsage
+	err := os.WriteFile(fileName, []byte(fmt.Sprintf(`
+upstream %s {
+    least_conn;
+    server localhost:%d;
+}
+
+server {
+    server_name %s;
+
+    sendfile on;
+    autoindex on;
+    autoindex_exact_size on;
+    autoindex_localtime on;
+
+    root %s;
+
+    location /snapshot {
+        alias %s/;
+    }
+
+    location / {
+        limit_req zone=req_zone burst=12 nodelay;
+
+        proxy_hide_header 'Access-Control-Allow-Origin';
+        proxy_pass         http://%s;
+        proxy_http_version 1.1;
+        proxy_set_header   Upgrade $http_upgrade;
+        proxy_set_header   Connection keep-alive;
+        proxy_set_header   Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_set_header   X-Forwarded-Host $server_name;
+    }
+
+    listen 80;
+}
+`, upstreamName, port, domain, snapshotDir, snapshotDir, upstreamName)), 0644)
+
+	if err != nil {
+		utils.ExitWithErrorMsgf("ERR: failed to write Web conf file: %v\n", err)
 		return
 	}
 }

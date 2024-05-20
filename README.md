@@ -46,9 +46,11 @@ nmngd gen-nginx \
   --rpc rpc.mychain.testnet.example.com \
   --rest rest.mychain.testnet.example.com \
   --jsonrpc jsonrpc.mychain.testnet.example.com \
+  --web mychain.testnet.example.com \
   [--rpc-port 26657] \
   [--rest-port 1317] \
-  [--jsonrpc-port 8545]
+  [--jsonrpc-port 8545] \
+  [--web-port 8080]
 ```
 
 ## Generate SSH keys
