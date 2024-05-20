@@ -382,6 +382,8 @@ func GetStateSyncCmd() *cobra.Command {
 				fmt.Println("INF: confirmed latest_block_height is updated")
 
 				_ = launchCmd.Process.Kill()
+
+				time.Sleep(10 * time.Second)
 				break
 			}
 		},
