@@ -24,6 +24,7 @@ nmngd start-web ~/.rpc-gaia \
   --port 8080 \
   --authorization-token "X" \
   --chain-name "Cosmos Hub" \
+  --chain-description "Multi-lines describes the chain\nand its features" \
   --chain-id cosmoshub-4 \
   --g-binary-name gaid \
   --g-node-home-name .gaia \

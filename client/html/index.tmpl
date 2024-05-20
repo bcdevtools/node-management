@@ -31,9 +31,12 @@
             <img class="mini-chain-logo" src="{[{ .logo }]}" alt="logo" />
         </div>
         {[{ end }]}
-        <div>
+        <h4>{[{ .chainName }]}</h4>
+        {[{ range $l := .chainDescLines }]}
+        <span class="d-block">{[{ $l }]}</span>
+        {[{ end }]}
+        <div class="mt-4">
             <p>Chain ID: {[{ .chainId }]}</p>
-            <p>Chain Name: {[{ .chainName }]}</p>
             <p>RPC: <a href="{[{ .rpcUrl }]}" target="_blank">{[{ .rpcUrl }]}</a></p>
             <p>API: <a href="{[{ .restUrl }]}" target="_blank">{[{ .restUrl }]}</a></p>
             {[{ if .grpcUrl }]}

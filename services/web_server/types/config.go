@@ -13,6 +13,7 @@ type Config struct {
 	// General chain-based configuration
 	ChainName           string // Evmos Dymension etc
 	ChainID             string // evmos_9001-2 dymension_1100-1 etc
+	ChainDescription    string
 	GeneralBinaryName   string // evmosd dymd etc
 	GeneralNodeHomeName string // .evmosd .dymension etc
 

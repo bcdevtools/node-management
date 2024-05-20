@@ -17,6 +17,7 @@ const (
 
 	flagBrand               = "brand"
 	flagChainName           = "chain-name"
+	flagChainDescription    = "chain-description"
 	flagChainID             = "chain-id"
 	flagGeneralBinaryName   = "g-binary-name"
 	flagGeneralNodeHomeName = "g-node-home-name"
@@ -55,6 +56,7 @@ func GetStartWebCmd() *cobra.Command {
 
 			brand, _ := cmd.Flags().GetString(flagBrand)
 			chainName, _ := cmd.Flags().GetString(flagChainName)
+			chainDescription, _ := cmd.Flags().GetString(flagChainDescription)
 			chainID, _ := cmd.Flags().GetString(flagChainID)
 			generalBinaryName, _ := cmd.Flags().GetString(flagGeneralBinaryName)
 			generalNodeHomeName, _ := cmd.Flags().GetString(flagGeneralNodeHomeName)
@@ -91,6 +93,8 @@ func GetStartWebCmd() *cobra.Command {
 				utils.ExitWithErrorMsgf("ERR: chain name is required, use --%s flag to set it\n", flagChainName)
 				return
 			}
+
+			chainDescription = strings.TrimSpace(chainDescription)
 
 			chainID = strings.TrimSpace(chainID)
 			if chainID == "" {
@@ -172,6 +176,7 @@ func GetStartWebCmd() *cobra.Command {
 				Brand: brand,
 
 				ChainName:           chainName,
+				ChainDescription:    chainDescription,
 				ChainID:             chainID,
 				GeneralBinaryName:   generalBinaryName,
 				GeneralNodeHomeName: generalNodeHomeName,
@@ -194,6 +199,7 @@ func GetStartWebCmd() *cobra.Command {
 
 	cmd.Flags().String(flagBrand, defaultBrand, "brand")
 	cmd.Flags().String(flagChainName, "", "chain name")
+	cmd.Flags().String(flagChainDescription, "", "chain description")
 	cmd.Flags().String(flagChainID, "", "chain ID")
 	cmd.Flags().String(flagGeneralBinaryName, "", "general binary name")
 	cmd.Flags().String(flagGeneralNodeHomeName, "", "general node home name")
