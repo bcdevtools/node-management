@@ -262,6 +262,7 @@ map $limit $limit_key {
 }
 
 limit_req_zone $limit_key zone=req_zone:10m rate=60r/m;
+limit_conn_zone $binary_remote_addr zone=addr:10m;
 `), 0644)
 
 	if err != nil {
@@ -471,6 +472,7 @@ server {
     root %s;
 
     location /snapshot {
+        limit_conn addr 2;
         alias %s/;
     }
 
