@@ -219,13 +219,13 @@ func GetGenStartWebCmd() *cobra.Command {
 				sb.WriteString(" ")
 				sb.WriteString(nodeHomeDirectory)
 			}
-			{
+			if port != defaultWebPort {
 				sb.WriteString(" --")
 				sb.WriteString(flagPort)
 				sb.WriteString(" ")
 				sb.WriteString(fmt.Sprintf("%d", port))
 			}
-			{
+			if !strings.EqualFold(brand, defaultBrand) {
 				sb.WriteString(" --")
 				sb.WriteString(flagBrand)
 				sb.WriteString(" '")

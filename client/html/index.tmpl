@@ -83,17 +83,19 @@
                             <pre class="border p-2"><code>sudo systemctl stop {[{ .generalBinaryName }]}</code></pre>
                             <p>
                                 Prepare <b>reset</b> your node. This will erase your node database.
-                                If you are already running validator, you <b>HAVE TO</b> backup up your <b>`priv_validator_key.json`</b>.
+                                If you are already running <b class="text-danger">validator</b>, you <b>HAVE TO</b> backup up your <b>`priv_validator_key.json`</b>.
                             </p>
-                            <pre class="border p-2"><code>cp ~/{[{ .generalNodeHomeName }]}/data/priv_validator_state.json ~/{[{ .generalNodeHomeName }]}/priv_validator_state.json</code></pre>
-                            <p>Verify <b>`priv_validator_key.json`</b> and the backup are equals</p>
-                            <pre class="border p-2"><code>sleep 10 &amp;&amp; cat ~/{[{ .generalNodeHomeName }]}/data/priv_validator_state.json &amp;&amp; cat ~/{[{ .generalNodeHomeName }]}/priv_validator_state.json</code></pre>
+                            <pre class="border p-2"><code>cp $HOME/{[{ .generalNodeHomeName }]}/data/priv_validator_state.json $HOME/{[{ .generalNodeHomeName }]}/priv_validator_state.json</code></pre>
+                            <p class="text-secondary">Verify <b>`priv_validator_key.json`</b> and the backup are equals</p>
+                            <pre class="border p-2"><code>sleep 10 &amp;&amp; cat $HOME/{[{ .generalNodeHomeName }]}/data/priv_validator_state.json &amp;&amp; cat $HOME/{[{ .generalNodeHomeName }]}/priv_validator_state.json</code></pre>
                             <p>Reset your node</p>
                             <pre class="border p-2"><code>{[{ .generalBinaryName }]} tendermint unsafe-reset-all --home $HOME/{[{ .generalNodeHomeName }]} --keep-addr-book</code></pre>
                             <p>Decompress the snapshot to your database location. Your database location will be something like <b>`{[{ .generalNodeHomeName }]}`</b> depending on the node implementation.</p>
                             <pre class="border p-2"><code>lz4 -c -d {[{ .snapshot.FileName }]} | tar -x -C $HOME/{[{ .generalNodeHomeName }]}/data</code></pre>
-                            <p><b>IMPORTANT:</b> If you run a validator node, be sure to restore the <b>`priv_validator_state.json`</b> file that you have backed up.</p>
-                            <pre class="border p-2"><code>mv ~/{[{ .generalNodeHomeName }]}/priv_validator_state.json ~/{[{ .generalNodeHomeName }]}/data/priv_validator_state.json</code></pre>
+                            <p><b>IMPORTANT:</b> If you run a <b class="text-danger">validator</b> node, be sure to restore the <b>`priv_validator_state.json`</b> file that you have backed up.</p>
+                            <pre class="border p-2"><code>mv $HOME/{[{ .generalNodeHomeName }]}/priv_validator_state.json $HOME/{[{ .generalNodeHomeName }]}/data/priv_validator_state.json</code></pre>
+                            <p class="text-secondary">Verify <b>`priv_validator_key.json`</b> was restored</p>
+                            <pre class="border p-2"><code>cat $HOME/{[{ .generalNodeHomeName }]}/data/priv_validator_state.json</code></pre>
                             <p>Restart the node</p>
                             <pre class="border p-2"><code>sudo systemctl restart {[{ .generalBinaryName }]}</code></pre>
                             <p>Remove the downloaded file to free-up disk space</p>
@@ -102,12 +104,14 @@
                             <pre class="border p-2"><code>sudo journalctl -fu {[{ .generalBinaryName }]}</code></pre>
                             <div class="mt-2">
                                 <p>
-                                    <b>ADVANCED ROUTE: <span class="text-danger">(not for Validator node)</span></b> The above solution requires you to download the compressed file, uncompressed it and then delete the original file.
+                                    <b>ADVANCED ROUTE: <span class="text-danger">(not recommended for Validator node)</span></b> The above solution requires you to download the compressed file, uncompressed it and then delete the original file.
                                     This requires extra storage space on your server.
                                     You can run the following combo command to stream the snapshot into your database location.
                                     For advanced users only:
                                 </p>
-                                <pre class="border p-2"><code>curl -o - -L {[{ .snapshot.DownloadFilePath }]} | lz4 -c -d - | tar -x -C $HOME/{[{ .generalNodeHomeName }]}</code></pre>
+                                <pre class="border p-2"><code>cp $HOME/{[{ .generalNodeHomeName }]}/data/priv_validator_state.json $HOME/{[{ .generalNodeHomeName }]}/priv_validator_state.json.advanced_route
+curl -o - -L {[{ .snapshot.DownloadFilePath }]} | lz4 -c -d - | tar -x -C $HOME/{[{ .generalNodeHomeName }]}</code></pre>
+                                <p><i class="text-muted">restore `priv_validator_state.json` if needed</i></p>
                             </div>
                         </div>
                         {[{ end }]}

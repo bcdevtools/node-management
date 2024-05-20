@@ -37,6 +37,7 @@ const (
 
 const (
 	defaultWebPort = 8080
+	defaultBrand   = "Valoper.io"
 )
 
 func GetStartWebCmd() *cobra.Command {
@@ -191,7 +192,7 @@ func GetStartWebCmd() *cobra.Command {
 	cmd.Flags().StringP(flagAuthorizationToken, "a", "", "authorization token")
 	cmd.Flags().Bool(flagDebug, false, "enable debug mode")
 
-	cmd.Flags().String(flagBrand, "Valoper.io", "brand")
+	cmd.Flags().String(flagBrand, defaultBrand, "brand")
 	cmd.Flags().String(flagChainName, "", "chain name")
 	cmd.Flags().String(flagChainID, "", "chain ID")
 	cmd.Flags().String(flagGeneralBinaryName, "", "general binary name")
