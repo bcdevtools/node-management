@@ -223,10 +223,7 @@ func GetStateSyncCmd() *cobra.Command {
 
 			var modernSed bool
 			launchSed := func(pattern string) {
-				args := []string{"-i"}
-				if utils.IsDarwin() {
-					args = append(args, "")
-				}
+				args := []string{"-i.bak"}
 				if modernSed {
 					args = append(args, "-E")
 				} else {

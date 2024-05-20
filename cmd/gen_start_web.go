@@ -128,6 +128,8 @@ func GetGenStartWebCmd() *cobra.Command {
 					filePerm := types.FilePermFrom(perm)
 					if !filePerm.Other.Read || !filePerm.Group.Read || !filePerm.User.Read {
 						err = fmt.Errorf("lacking read permission for snapshot file")
+					} else if filePerm.Other.Write || filePerm.Group.Write {
+						err = fmt.Errorf("unnecessary write permission for snapshot file")
 					}
 				}
 
@@ -139,6 +141,7 @@ func GetGenStartWebCmd() *cobra.Command {
 				utils.PrintlnStdErr("Please correct the snapshot file path or permission!")
 				utils.PrintlnStdErr("Command to fix snapshot file permission:")
 				utils.PrintlnStdErr("> sudo chmod ugo+r", snapshotFilePath)
+				utils.PrintlnStdErr("> sudo chmod go-w", snapshotFilePath)
 				utils.PrintlnStdErr("Then press enter to continue...")
 				_ = utils.ReadText(true)
 			}
@@ -304,7 +307,9 @@ func GetGenStartWebCmd() *cobra.Command {
 				sb.WriteString(extResFaviconUrl)
 			}
 
-			fmt.Println("Generated command:\n")
+			fmt.Println()
+			fmt.Println("Generated command:")
+			fmt.Println()
 			fmt.Println(sb.String())
 		},
 	}

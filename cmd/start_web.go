@@ -123,6 +123,10 @@ func GetStartWebCmd() *cobra.Command {
 			extResRestUrl = strings.TrimSpace(extResRestUrl)
 			extResGrpcUrl = strings.TrimSpace(extResGrpcUrl)
 
+			if extResLogoUrl == "" && extResFaviconUrl != "" {
+				extResLogoUrl = extResFaviconUrl
+			}
+
 			if extResRpcUrl == "" {
 				utils.ExitWithErrorMsgf("ERR: external resource RPC URL is required, use --%s flag to set it\n", flagExtResRpcUrl)
 				return

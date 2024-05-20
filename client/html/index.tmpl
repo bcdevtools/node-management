@@ -26,9 +26,11 @@
 <body>
     <div id="main" class="container">
         <h3 class="mt-3">{[{ .description }]}</h3>
+        {[{ if .logo }]}
         <div class="m-3">
             <img class="mini-chain-logo" src="{[{ .logo }]}" alt="logo" />
         </div>
+        {[{ end }]}
         <div>
             <p>Chain ID: {[{ .chainId }]}</p>
             <p>Chain Name: {[{ .chainName }]}</p>
@@ -120,7 +122,7 @@
                 </h3>
                 <div id="collapseStateSync" class="accordion-collapse collapse" aria-labelledby="headingStateSync" data-bs-parent="#accordionMain">
                     <div class="card card-body">
-                        <h3 class="text-warn">Do not state-sync a validator node, instead state-sync a node and move data to validator node. Be sure backup and restore <b>`priv_validator_key.json`</b></h3>
+                        <p class="text-warning">Do not state-sync a validator node, instead state-sync a full-node and move data to validator node. Be sure backup and restore <b>`priv_validator_key.json`</b></p>
                         <p>Our state-sync RPC server for {[{ .chainName }]} is</p>
                         <pre class="border p-2"><code>{[{ .rpcUrl }]}</code></pre>
                         <p>
@@ -130,18 +132,18 @@
                         </p>
                         <pre class="border p-2"><code>#!/bin/bash
 
-            SNAP_RPC="{[{ .rpcUrl }]}"
+SNAP_RPC="{[{ .rpcUrl }]}"
 
-            LATEST_HEIGHT=$(curl -s $SNAP_RPC/block | jq -r .result.block.header.height); \
-            BLOCK_HEIGHT=$((LATEST_HEIGHT - 2000)); \
-            TRUST_HASH=$(curl -s "$SNAP_RPC/block?height=$BLOCK_HEIGHT" | jq -r .result.block_id.hash)
+LATEST_HEIGHT=$(curl -s $SNAP_RPC/block | jq -r .result.block.header.height); \
+BLOCK_HEIGHT=$((LATEST_HEIGHT - 2000)); \
+TRUST_HASH=$(curl -s "$SNAP_RPC/block?height=$BLOCK_HEIGHT" | jq -r .result.block_id.hash)
 
-            sed -i.bak -E "s|^(enable[[:space:]]+=[[:space:]]+).*$|\1true| ; \
-            s|^(rpc_servers[[:space:]]+=[[:space:]]+).*$|\1\"$SNAP_RPC,$SNAP_RPC\"| ; \
-            s|^(trust_height[[:space:]]+=[[:space:]]+).*$|\1$BLOCK_HEIGHT| ; \
-            s|^(trust_hash[[:space:]]+=[[:space:]]+).*$|\1\"$TRUST_HASH\"|" $HOME/{[{ .generalNodeHomeName }]}/config/config.toml</code></pre>
+sed -i.bak -E "s|^(enable[[:space:]]+=[[:space:]]+).*$|\1true| ; \
+s|^(rpc_servers[[:space:]]+=[[:space:]]+).*$|\1\"$SNAP_RPC,$SNAP_RPC\"| ; \
+s|^(trust_height[[:space:]]+=[[:space:]]+).*$|\1$BLOCK_HEIGHT| ; \
+s|^(trust_hash[[:space:]]+=[[:space:]]+).*$|\1\"$TRUST_HASH\"|" $HOME/{[{ .generalNodeHomeName }]}/config/config.toml</code></pre>
                         {[{ if gt .livePeersCount 0 }]}
-                            <p>Consider adding live-peers above to <b>`persistent_peers`</b> in <b>`config.toml`</b></p>
+                            <p>Consider adding {[{ .livePeersCount }]} live-peers above to <b>`persistent_peers`</b> in <b>`config.toml`</b></p>
                         {[{ end }]}
                         <p>Stop the node</p>
                         <pre class="border p-2"><code>sudo systemctl stop {[{ .generalBinaryName }]}</code></pre>
