@@ -301,12 +301,17 @@ func GetStateSyncCmd() *cobra.Command {
 
 			expiry := time.Now().UTC().Add(maxDuration)
 
-		waitSync:
-			for {
-				if time.Now().UTC().After(expiry) {
-					utils.ExitWithErrorMsg("ERR: state sync expired")
+			ensureStateSyncNotExpired := func() {
+				if time.Now().UTC().Before(expiry) {
 					return
 				}
+				_ = launchCmd.Process.Kill()
+				utils.ExitWithErrorMsg("ERR: state sync expired")
+			}
+
+		waitSync:
+			for {
+				ensureStateSyncNotExpired()
 
 				time.Sleep(30 * time.Second)
 
@@ -320,7 +325,6 @@ func GetStateSyncCmd() *cobra.Command {
 				switch catchingUp {
 				case "false":
 					fmt.Println("INF: node is synced")
-					_ = launchCmd.Process.Kill()
 					break waitSync
 				case "true":
 					fmt.Println("INF: node is catching up")
@@ -329,6 +333,56 @@ func GetStateSyncCmd() *cobra.Command {
 					utils.PrintlnStdErr("ERR: invalid catching_up value from rpc:", catchingUp)
 					continue
 				}
+			}
+
+			fmt.Println("INF: retry ensure node keep synced to prevent AppHash mismatch issue")
+
+			var heightToCompare int64
+			var firstConfirm time.Time
+			for {
+				ensureStateSyncNotExpired()
+
+				time.Sleep(10 * time.Second)
+
+				output, ec = utils.LaunchAppAndGetOutput("/bin/bash", []string{"-c", fmt.Sprintf("curl -s %s/status | jq -r .result.sync_info.latest_block_height", stateSyncNodeRpc)})
+				if ec != 0 {
+					utils.PrintlnStdErr("ERR: failed to get latest_block_height from rpc")
+					continue
+				}
+
+				height, err := strconv.ParseInt(strings.TrimSpace(output), 10, 64)
+				if err != nil {
+					utils.PrintlnStdErr("ERR: failed to parse latest_block_height from rpc:", err)
+					continue
+				}
+
+				if heightToCompare == 0 {
+					heightToCompare = height
+					continue
+				}
+
+				if heightToCompare == height {
+					fmt.Println("INF: latest_block_height is not updated")
+					continue
+				}
+
+				if heightToCompare > height {
+					utils.PrintlnStdErr("ERR: latest_block_height was reduced from", heightToCompare, "to", height)
+					continue
+				}
+
+				if firstConfirm == (time.Time{}) {
+					firstConfirm = time.Now().UTC()
+				}
+				if time.Since(firstConfirm) < 1*time.Minute {
+					heightToCompare = height
+					continue
+				}
+
+				fmt.Println("INF: confirmed latest_block_height is updated")
+
+				_ = launchCmd.Process.Kill()
+				break
 			}
 		},
 	}
