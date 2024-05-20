@@ -62,6 +62,13 @@ func GetGenStartWebCmd() *cobra.Command {
 				return
 			}
 
+			fmt.Println("Chain description (optional, multiple lines supported, split by \\n):")
+			chainDescription := strings.TrimSpace(utils.ReadText(true))
+			if strings.Contains(chainDescription, "\"") || strings.Contains(chainDescription, "'") {
+				utils.ExitWithErrorMsg("ERR: chain description must not contain double or single quotes")
+				return
+			}
+
 			fmt.Println("Chain ID (eg: cosmoshub-4):")
 			chainID := strings.TrimSpace(utils.ReadText(false))
 			if chainID == "" {
@@ -244,6 +251,13 @@ func GetGenStartWebCmd() *cobra.Command {
 				sb.WriteString(flagChainName)
 				sb.WriteString(" '")
 				sb.WriteString(chainName)
+				sb.WriteString("'")
+			}
+			if chainDescription != "" {
+				sb.WriteString(" --")
+				sb.WriteString(flagChainDescription)
+				sb.WriteString(" '")
+				sb.WriteString(chainDescription)
 				sb.WriteString("'")
 			}
 			{
