@@ -89,11 +89,11 @@ func getSnapshotInfo(cfg webtypes.Config) webtypes.SnapshotInfo {
 
 			var strModTime string
 			modTime := time.Since(fi.ModTime())
-			if modTime >= 24*time.Hour {
+			if modTime >= 2*24*time.Hour {
 				strModTime = fmt.Sprintf("%d days", int(modTime.Hours()/24))
-			} else if modTime >= time.Hour {
+			} else if modTime >= 2*time.Hour {
 				strModTime = fmt.Sprintf("%d hours", int(modTime.Hours()))
-			} else if modTime >= time.Minute {
+			} else if modTime >= 2*time.Minute {
 				strModTime = fmt.Sprintf("%d minutes", int(modTime.Minutes()))
 			} else {
 				strModTime = fmt.Sprintf("%d seconds", int(modTime.Seconds()))
