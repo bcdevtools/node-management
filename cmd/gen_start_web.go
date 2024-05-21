@@ -8,6 +8,7 @@ import (
 	"github.com/bcdevtools/node-management/validation"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"os/user"
 	"regexp"
 	"strings"
 )
@@ -220,8 +221,6 @@ func GetGenStartWebCmd() *cobra.Command {
 
 			var sb strings.Builder
 			{
-				sb.WriteString(constants.BINARY_NAME)
-				sb.WriteString(" ")
 				sb.WriteString(cmdStartWeb)
 				sb.WriteString(" ")
 				sb.WriteString(nodeHomeDirectory)
@@ -324,7 +323,56 @@ func GetGenStartWebCmd() *cobra.Command {
 			fmt.Println()
 			fmt.Println("Generated command:")
 			fmt.Println()
+			fmt.Print(constants.BINARY_NAME, " ")
 			fmt.Println(sb.String())
+
+			currentUser, err := user.Current()
+			if err != nil {
+				utils.ExitWithErrorMsg("ERR: failed to get current user")
+				return
+			}
+			appBinaryPath, ec := utils.LaunchAppAndGetOutput("which", []string{constants.BINARY_NAME})
+			appBinaryPath = strings.TrimSpace(appBinaryPath)
+			if ec != 0 || appBinaryPath == "" {
+				appBinaryPath = constants.BINARY_NAME
+			}
+
+			fmt.Println()
+			regexNonAlphanumeric := regexp.MustCompile(`[^a-zA-Z\d]`)
+			serviceFileName := strings.ToLower(
+				fmt.Sprintf("%s.%s.service",
+					regexNonAlphanumeric.ReplaceAllString(brand, "-"),
+					regexNonAlphanumeric.ReplaceAllString(chainName, "-"),
+				),
+			)
+			{
+				fmt.Println("Service file:")
+				fmt.Println(fmt.Sprintf("sudo vi /etc/systemd/system/%s", serviceFileName))
+			}
+			fmt.Println()
+			{
+				fmt.Println(fmt.Sprintf(`[Unit]
+Description=%s on %s
+After=network.target
+#
+[Service]
+Restart=always
+RestartSec=10
+User=%s
+ExecStart=%s %s
+Restart=on-failure
+LimitNOFILE=65535
+#
+[Install]
+WantedBy=multi-user.target`,
+					chainName, brand, currentUser, appBinaryPath, sb.String()),
+				)
+			}
+			{
+				fmt.Println()
+				fmt.Println("sudo systemctl enable", serviceFileName)
+				fmt.Println("sudo systemctl restart", serviceFileName)
+			}
 		},
 	}
 
