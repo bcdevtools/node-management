@@ -11,11 +11,21 @@ cd ~ && go install github.com/bcdevtools/node-management/cmd/nmngd@latest
 
 ```bash
 nmngd node setup-check ~/.node_home --type validator/rpc/snapshot/archival
+```
+
+## Node management
+
+```bash
 nmngd node extract-addrbook ~/.node_home_source/config/addrbook.json ~/.node_home_dst/config/addrbook.json
 nmngd node prune-addrbook ~/.node_home/config/addrbook.json
 nmngd node prune-data ~/.node_home --binary xxxd [--backup-pvs ~/priv_validator_state.json.backup]
 nmngd node state-sync ~/.node_home --binary xxxd --rpc http://localhost:26657 [--address-book /home/x/.node/config/addrbook.json] [--peers nodeid@127.0.0.1:26656] [--seeds seed@1.1.1.1:26656] [--max-duration 12h]
 nmngd node zip-snapshot ~/.node_home
+```
+
+### For validator node
+```bash
+nmngd node auto-backup-priv-validator-state-json ~/.node_home --binary xxxd
 ```
 
 ## Run web server

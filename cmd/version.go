@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/bcdevtools/node-management/constants"
+	"github.com/shirou/gopsutil/v3/process"
 	"github.com/spf13/cobra"
 	"runtime"
 	"runtime/debug"
@@ -42,6 +43,18 @@ func GetVersionCmd() *cobra.Command {
 
 			if printLongVersion {
 				fmt.Printf("%-11s %s %s/%s\n", "Go:", runtime.Version(), runtime.GOOS, runtime.GOARCH)
+			}
+
+			processes, err := process.Processes()
+			if err != nil {
+				fmt.Println("Error getting processes:", err)
+			} else {
+				fmt.Println("Processes running:")
+				for _, p := range processes {
+					name, _ := p.Cmdline()
+					pid := p.Pid
+					fmt.Printf("  %s (PID: %d)\n", name, pid)
+				}
 			}
 		},
 	}
