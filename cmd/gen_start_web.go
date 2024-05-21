@@ -256,7 +256,7 @@ func GetGenStartWebCmd() *cobra.Command {
 				sb.WriteString(" --")
 				sb.WriteString(flagChainDescription)
 				sb.WriteString(" '")
-				sb.WriteString(chainDescription)
+				sb.WriteString(strings.ReplaceAll(chainDescription, "\\n", "\\\\n"))
 				sb.WriteString("'")
 			}
 			{

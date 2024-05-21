@@ -130,7 +130,7 @@ func GetPruneNodeDataCmd() *cobra.Command {
 					return
 				}
 
-				if !pvs.Equals(pvsBackup) {
+				if !pvs.Equals(*pvsBackup) {
 					utils.ExitWithErrorMsg("ERR: backup file at", backupPrivValStateJson, "has different content with", filePathPrivValState)
 					return
 				}
@@ -158,7 +158,7 @@ func GetPruneNodeDataCmd() *cobra.Command {
 					utils.ExitWithErrorMsg("ERR: failed to load additional backup file", additionalBackupFile, ":", err)
 					return
 				}
-				if !pvs.Equals(backupPsv2) {
+				if !pvs.Equals(*backupPsv2) {
 					utils.ExitWithErrorMsg("ERR: additional backup file at", additionalBackupFile, "has different content with", filePathPrivValState)
 					return
 				}
@@ -199,7 +199,7 @@ func GetPruneNodeDataCmd() *cobra.Command {
 					return
 				}
 
-				if !pvs.Equals(pvsBackup) {
+				if !pvs.Equals(*pvsBackup) {
 					utils.ExitWithErrorMsg("ERR: content of", fileNamePrivValState, "is changed after additional backup file created")
 					return
 				}

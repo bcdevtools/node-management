@@ -14,12 +14,15 @@ func GetNodeCommands() *cobra.Command {
 		Short: "Manage nodes",
 	}
 
-	cmd.AddCommand(setup_check.GetStepCheckCmd())
-	cmd.AddCommand(GetExtractAddrBookCmd())
-	cmd.AddCommand(GetPruneAddrBookCmd())
-	cmd.AddCommand(GetPruneNodeDataCmd())
-	cmd.AddCommand(GetStateSyncCmd())
-	cmd.AddCommand(GetZipSnapshotCmd())
+	cmd.AddCommand(
+		setup_check.GetStepCheckCmd(),
+		GetExtractAddrBookCmd(),
+		GetPruneAddrBookCmd(),
+		GetPruneNodeDataCmd(),
+		GetStateSyncCmd(),
+		GetZipSnapshotCmd(),
+		GetAutoBackupPrivValidatorStateCmd(),
+	)
 
 	return cmd
 }
