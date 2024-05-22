@@ -23,7 +23,7 @@
     {[{ if .brand }]}
     <style type="text/css">
         .watermark-brand {
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='100px' width='300px' opacity='0.1'><text transform='translate(20, 100) rotate(-25)' fill='rgb(245,45,45)' font-size='46'>{[{ .brand }]}</text></svg>");
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='100px' width='300px' opacity='0.05'><text transform='translate(20, 100) rotate(-25)' fill='rgb(245,45,45)' font-size='46'>{[{ .brand }]}</text></svg>");
         }
     </style>
     {[{ end }]}
@@ -68,11 +68,11 @@
             </div>
             <div class="accordion-item">
                 <h3 class="accordion-header" id="headingAddrbook">
-                    <span class="accordion-button cursor-pointer" data-bs-toggle="collapse" data-bs-target="#collapseAddrbook" aria-expanded="true" aria-controls="collapseAddrbook">
+                    <span class="accordion-button collapsed cursor-pointer" data-bs-toggle="collapse" data-bs-target="#collapseAddrbook" aria-expanded="false" aria-controls="collapseAddrbook">
                         Addrbook
                     </span>
                 </h3>
-                <div id="collapseAddrbook" class="accordion-collapse collapse show" aria-labelledby="headingAddrbook" data-bs-parent="#accordionMain">
+                <div id="collapseAddrbook" class="accordion-collapse collapse" aria-labelledby="headingAddrbook" data-bs-parent="#accordionMain">
                     <div class="card card-body">
                         {[{ if gt .livePeersCount 0 }]}
                         <p>Download: <a href="/download/addrbook.json">addrbook.json</a></p>

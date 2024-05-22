@@ -49,7 +49,7 @@ func HandleWebIndex(c *gin.Context) {
 		"host":                c.Request.Host,
 		"brand":               cfg.Brand,
 		"title":               fmt.Sprintf("%s snapshot by %s", cfg.ChainName, cfg.Brand),
-		"description":         fmt.Sprintf("Snapshot data, live-peers for %s (%s) by %s", cfg.ChainName, cfg.ChainID, cfg.Brand),
+		"description":         fmt.Sprintf("Snapshot data, live-peers, addrbook for %s by %s", cfg.ChainName, cfg.Brand),
 		"chainName":           cfg.ChainName,
 		"chainDescLines":      chainDescriptionLines,
 		"chainId":             cfg.ChainID,
