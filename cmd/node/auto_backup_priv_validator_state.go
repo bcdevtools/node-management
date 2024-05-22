@@ -90,7 +90,7 @@ func GetAutoBackupPrivValidatorStateCmd() *cobra.Command {
 			fmt.Println(latestBackupPvs.Json())
 
 			const interval = 800 * time.Millisecond
-			lastExecution := time.Now().UTC().Add(-interval)
+			var lastExecution time.Time
 
 			var createdBackup []string
 
@@ -115,13 +115,20 @@ func GetAutoBackupPrivValidatorStateCmd() *cobra.Command {
 
 				// Load the recent state
 
-				pvs := &types.PrivateValidatorState{}
-				err := pvs.LoadFromJSONFile(privValStateJsonFilePath)
+				loadRecentPrivateValidatorState := func() (types.PrivateValidatorState, error) {
+					pvs := &types.PrivateValidatorState{}
+					err := pvs.LoadFromJSONFile(privValStateJsonFilePath)
+					if err != nil {
+						return types.PrivateValidatorState{}, err
+					}
+					return *pvs, nil
+				}
+
+				recentPvs, err := loadRecentPrivateValidatorState()
 				if err != nil {
 					utils.PrintlnStdErr("ERR: failed to load priv_validator_state.json file:", err)
 					continue
 				}
-				recentPvs := *pvs
 
 				cmp, _ := latestBackupPvs.CompareState(recentPvs)
 				// TODO handle different signs flag, returned by CompareState
@@ -159,6 +166,40 @@ func GetAutoBackupPrivValidatorStateCmd() *cobra.Command {
 					}
 
 					latestBackupPvs = recentPvs
+					continue
+				}
+
+				const slightlySleepDuration = 5 * time.Millisecond // prevent consuming all CPU
+
+				if recentPvs.IsEmpty() {
+					fmt.Println("WARN: detected state file is empty, possibly restoring snapshot")
+					fmt.Println("WARN: attempts to kill the node binary", binaryNameToKill, "while waiting content to be restored")
+
+					// possibly restoring snapshot progress
+					killedStatusOnSoftProtectRestoreSnapshot := &killedStatus{}
+
+					for {
+						shouldIgnoreSleep := killNodeOnLoop(binaryNameToKill, killedStatusOnSoftProtectRestoreSnapshot)
+						if shouldIgnoreSleep {
+							time.Sleep(slightlySleepDuration)
+						} else {
+							time.Sleep(100 * time.Millisecond)
+						}
+
+						recentPvs, err = loadRecentPrivateValidatorState()
+						if err != nil {
+							utils.PrintlnStdErr("ERR: failed to load priv_validator_state.json file after killing node:", err)
+							time.Sleep(slightlySleepDuration)
+							continue
+						}
+
+						if !recentPvs.IsEmpty() {
+							// recent state no longer empty, continue to check in next loop
+							break
+						}
+					}
+
+					lastExecution = time.Time{} // reset last execution time, move to next as fast as possible
 					continue
 				}
 
@@ -223,9 +264,14 @@ How to recover:
 
 				// Force-stop the node
 
-				killedStatus := &killedStatus{}
+				killedStatusOnFatal := &killedStatus{}
 				for {
-					killNodeLoop(binaryNameToKill, killedStatus)
+					shouldIgnoreSleep := killNodeOnLoop(binaryNameToKill, killedStatusOnFatal)
+					if shouldIgnoreSleep {
+						time.Sleep(slightlySleepDuration)
+					} else {
+						time.Sleep(300 * time.Millisecond)
+					}
 				}
 			}
 		},
@@ -241,23 +287,14 @@ type killedStatus struct {
 	killedCount uint
 }
 
-func killNodeLoop(binaryNameToKill string, killedStatus *killedStatus) {
-	var ignoreSleep bool
-	defer func() {
-		if ignoreSleep {
-			time.Sleep(5 * time.Millisecond) // prevent CPU race condition
-		} else {
-			time.Sleep(300 * time.Millisecond)
-		}
-	}()
-
+func killNodeOnLoop(binaryNameToKill string, killedStatus *killedStatus) (shouldIgnoreSleep bool) {
 	if killedStatus.killedCount < 1 {
 		fmt.Println("INF: Killing the node binary:", binaryNameToKill)
 	}
 	processes, err := process.Processes()
 	if err != nil {
 		utils.PrintlnStdErr("ERR: failed to get processes:", err)
-		ignoreSleep = true
+		shouldIgnoreSleep = true
 		return
 	}
 
@@ -321,7 +358,7 @@ func killNodeLoop(binaryNameToKill string, killedStatus *killedStatus) {
 		if killedStatus.killedCount < 1 {
 			utils.PrintlnStdErr("ERR: no process found to be killed")
 		}
-		ignoreSleep = true
+		shouldIgnoreSleep = true
 		return
 	}
 
@@ -364,6 +401,8 @@ func killNodeLoop(binaryNameToKill string, killedStatus *killedStatus) {
 	}
 
 	fmt.Println("INF: total killed", killedStatus.killedCount, "processes")
+
+	return
 }
 
 func createBackupDirIfNotExists(backupDstPath string) {
