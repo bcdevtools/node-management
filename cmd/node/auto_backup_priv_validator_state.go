@@ -37,8 +37,12 @@ func GetAutoBackupPrivValidatorStateCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			utils.MustNotUserRoot()
 
-			nodeHomeDirectory := strings.TrimSpace(args[0])
+			nodeHomeDirectory := strings.TrimSuffix(strings.TrimSpace(args[0]), "/")
 			validateNodeHomeDirectory(nodeHomeDirectory)
+			if !strings.Contains(nodeHomeDirectory, "/") {
+				utils.ExitWithErrorMsg("ERR: node home directory must be absolute path, eg: /home/user/.nodeHome")
+				return
+			}
 
 			currentUser, err := user.Current()
 			if err != nil {
@@ -46,6 +50,11 @@ func GetAutoBackupPrivValidatorStateCmd() *cobra.Command {
 				return
 			}
 			userHomeDir := currentUser.HomeDir
+
+			if !strings.HasPrefix(nodeHomeDirectory, userHomeDir) {
+				utils.ExitWithErrorMsg("ERR: node home directory must be under user home directory:", userHomeDir)
+				return
+			}
 
 			backupDstPath := path.Join(userHomeDir, fmt.Sprintf(".backup_priv_validator_state_%s", constants.BINARY_NAME))
 			createBackupDirIfNotExists(backupDstPath)
