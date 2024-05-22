@@ -62,6 +62,20 @@
                 </div>
             </div>
             <div class="accordion-item">
+                <h3 class="accordion-header" id="headingAddrbook">
+                    <span class="accordion-button cursor-pointer" data-bs-toggle="collapse" data-bs-target="#collapseAddrbook" aria-expanded="true" aria-controls="collapseAddrbook">
+                        Addrbook
+                    </span>
+                </h3>
+                <div id="collapseAddrbook" class="accordion-collapse collapse show" aria-labelledby="headingAddrbook" data-bs-parent="#accordionMain">
+                    <div class="card card-body">
+                        <p>Download: <a href="/download/addrbook.json">addrbook.json</a></p>
+                        <pre class="border p-2"><code>wget -O addrbook.json https://{[{ .host }]}/download/addrbook.json --inet4-only
+mv addrbook.json $HOME/{[{ .generalNodeHomeName }]}/config</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
                 <h3 class="accordion-header" id="headingSnapshot">
                     <span class="accordion-button cursor-pointer" data-bs-toggle="collapse" data-bs-target="#collapseSnapshot" aria-expanded="true" aria-controls="collapseSnapshot">
                         Snapshot
