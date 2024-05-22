@@ -60,6 +60,7 @@ func StartWebServer(cfg webtypes.Config) {
 
 	// Web
 	r.GET("/", HandleWebIndex)
+	r.GET("/download/addrbook.json", HandleDownloadAddrBook)
 
 	fmt.Println("INF: starting Web service at", binding)
 

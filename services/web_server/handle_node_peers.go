@@ -20,6 +20,7 @@ func HandleApiNodeLivePeers(c *gin.Context) {
 	if err != nil {
 		utils.PrintlnStdErr("ERR: failed to get live peers:", err)
 		w.PrepareDefaultErrorResponse().WithResult("failed to get live peers").SendResponse()
+		return
 	}
 
 	w.PrepareDefaultSuccessResponse(peers).SendResponse()
