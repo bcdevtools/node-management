@@ -1,6 +1,8 @@
 GIT_TAG := $(shell echo $(shell git describe --tags || git branch --show-current) | sed 's/^v//')
 COMMIT  := $(shell git log -1 --format='%H')
 BUILD_DATE	:= $(shell date '+%Y-%m-%d')
+IS_SUDO_USER := $(shell if [ "$(shell whoami)" = "root" ] || [ "$(shell groups | grep -e 'sudo' -e 'admin' -e 'google-sudoers' | wc -l)" = "1" ]; then echo "1"; fi)
+GO_BIN := $(shell echo $(shell which go || echo "/usr/local/go/bin/go" ))
 
 ###############################################################################
 ###                                Build flags                              ###
@@ -11,15 +13,6 @@ LD_FLAGS = -X github.com/bcdevtools/node-management/constants.VERSION=$(GIT_TAG)
             -X github.com/bcdevtools/node-management/constants.BUILD_DATE=$(BUILD_DATE)
 
 BUILD_FLAGS := -ldflags '$(LD_FLAGS)'
-
-###############################################################################
-###                                  Test                                   ###
-###############################################################################
-
-test: go.sum
-	@echo "testing"
-	@go test -v ./... -race -coverprofile=coverage.txt -covermode=atomic
-.PHONY: test
 
 ###############################################################################
 ###                                  HTML                                   ###
@@ -50,5 +43,12 @@ install: go.sum
 	@echo "Installing Node Management binary..."
 	@echo "Flags $(BUILD_FLAGS)"
 	@go install -mod=readonly $(BUILD_FLAGS) ./cmd/nmngd
+	@echo " [v] Installed in GOPATH/bin"
+	@if [ "$(shell uname)" = "Linux" ] && [ "$(IS_SUDO_USER)" = "1" ]; then \
+		sudo mv $(shell $(GO_BIN) env GOPATH)/bin/nmngd /usr/local/bin/nmngd; \
+		echo " [v] Installed as global command"; \
+	else \
+		echo " [x] (Skipped) Install as global command"; \
+	fi
 	@echo "Installed Node Management successfully"
 .PHONY: install
