@@ -473,6 +473,7 @@ server {
 
     location /snapshot {
         limit_conn addr 2;
+        limit_rate 20m;
         alias %s/;
     }
 
