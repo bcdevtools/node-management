@@ -26,6 +26,8 @@ nmngd node zip-snapshot ~/.node_home
 ### For validator node
 ```bash
 nmngd node auto-backup-priv-validator-state-json ~/.node_home --binary xxxd
+# generate setup for auto-backup-pvs
+nmngd node auto-backup-priv-validator-state-json ~/.node_home --binary xxxd --gen-setup
 ```
 
 ## Run web server
