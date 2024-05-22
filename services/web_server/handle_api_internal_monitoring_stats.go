@@ -16,7 +16,7 @@ func HandleApiInternalMonitoringStats(c *gin.Context) {
 
 	cpuInfo := make(map[string]any)
 	vmInfo := make(map[string]any)
-	disks := make([]map[string]any, 0)
+	disksInfo := make([]map[string]any, 0)
 
 	pCore, errPCore := cpu.Counts(false)
 	if errPCore == nil {
@@ -40,15 +40,15 @@ func HandleApiInternalMonitoringStats(c *gin.Context) {
 		vmInfo["used_percent"] = normalizePercentage(vm.UsedPercent)
 	}
 
-	for _, _disk := range cfg.Disks {
-		du, err := disk.Usage(_disk)
+	for _, monitorDisk := range cfg.MonitorDisks {
+		du, err := disk.Usage(monitorDisk)
 		if err != nil {
-			utils.PrintlnStdErr("ERR: failed to get disk spec", "disk", _disk, "error", err.Error())
+			utils.PrintlnStdErr("ERR: failed to get disk spec", "disk", monitorDisk, "error", err.Error())
 			continue
 		}
 
-		disks = append(disks, map[string]any{
-			"mount":        _disk,
+		disksInfo = append(disksInfo, map[string]any{
+			"mount":        monitorDisk,
 			"total":        convertByteToGb(du.Total),
 			"used":         convertByteToGb(du.Used),
 			"used_percent": normalizePercentage(du.UsedPercent),
@@ -58,7 +58,7 @@ func HandleApiInternalMonitoringStats(c *gin.Context) {
 	w.PrepareDefaultSuccessResponse(map[string]any{
 		"cpu":   cpuInfo,
 		"ram":   vmInfo,
-		"disks": disks,
+		"disks": disksInfo,
 	}).SendResponse()
 }
 

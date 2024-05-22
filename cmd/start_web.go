@@ -13,7 +13,7 @@ import (
 const (
 	flagPort               = "port"
 	flagAuthorizationToken = "authorization-token"
-	flagDisks              = "disks"
+	flagMonitorDisks       = "monitor-disks"
 	flagDebug              = "debug"
 
 	flagBrand               = "brand"
@@ -53,7 +53,7 @@ func GetStartWebCmd() *cobra.Command {
 			nodeHomeDirectory := strings.TrimSpace(args[0])
 			port, _ := cmd.Flags().GetUint16(flagPort)
 			authorizationToken, _ := cmd.Flags().GetString(flagAuthorizationToken)
-			disks, _ := cmd.Flags().GetStringSlice(flagDisks)
+			monitorDisks, _ := cmd.Flags().GetStringSlice(flagMonitorDisks)
 			debug, _ := cmd.Flags().GetBool(flagDebug)
 
 			brand, _ := cmd.Flags().GetString(flagBrand)
@@ -84,31 +84,35 @@ func GetStartWebCmd() *cobra.Command {
 				return
 			}
 
-			if disks == nil || len(disks) == 0 {
-				utils.ExitWithErrorMsgf("ERR: disks is required, use --%s flag to set it\n", flagDisks)
+			if monitorDisks == nil || len(monitorDisks) == 0 {
+				utils.ExitWithErrorMsgf("ERR: disks are required, use --%s flag to set it\n", flagMonitorDisks)
 				return
 			}
-			for _, disk := range disks {
-				disk := strings.TrimSpace(disk)
-				if !strings.HasPrefix(disk, "/") {
-					utils.ExitWithErrorMsgf("ERR: disk must be absolute path, correct the --%s flag\n", flagDisks)
+			for _, disk := range monitorDisks {
+				monitorDisk := strings.TrimSpace(disk)
+				if !strings.HasPrefix(monitorDisk, "/") {
+					utils.ExitWithErrorMsgf("ERR: disk must be absolute path, correct the --%s flag\n", flagMonitorDisks)
 					return
 				}
-				if strings.HasPrefix(disk, "/dev") {
-					utils.ExitWithErrorMsgf("ERR: disk must be path, not device, correct the --%s flag\n", flagDisks)
+				if strings.HasPrefix(monitorDisk, "/dev") {
+					utils.ExitWithErrorMsgf("ERR: disk must be filesystem path, not device, correct the --%s flag\n", flagMonitorDisks)
 					return
 				}
-				_, exists, isDir, err := utils.FileInfo(disk)
+				_, exists, isDir, err := utils.FileInfo(monitorDisk)
 				if err != nil {
-					utils.ExitWithErrorMsgf("ERR: disk %s is invalid, correct the --%s flag\n", disk, flagDisks)
+					utils.ExitWithErrorMsgf("ERR: disk %s is invalid, correct the --%s flag\n", monitorDisk, flagMonitorDisks)
 					return
 				}
 				if !exists {
-					utils.ExitWithErrorMsgf("ERR: disk %s does not exists, correct the --%s flag\n", disk, flagDisks)
+					utils.ExitWithErrorMsgf("ERR: disk %s does not exists, correct the --%s flag\n", monitorDisk, flagMonitorDisks)
 					return
 				}
 				if !isDir {
-					utils.ExitWithErrorMsgf("ERR: disk %s is not a directory, correct the --%s flag\n", disk, flagDisks)
+					utils.ExitWithErrorMsgf(
+						"ERR: disk %s is not a directory, must be filesystem path, correct the --%s flag\n",
+						monitorDisk,
+						flagMonitorDisks,
+					)
 					return
 				}
 			}
@@ -201,7 +205,7 @@ func GetStartWebCmd() *cobra.Command {
 			web_server.StartWebServer(webtypes.Config{
 				Port:           port,
 				AuthorizeToken: authorizationToken,
-				Disks:          disks,
+				MonitorDisks:   monitorDisks,
 				NodeHome:       nodeHomeDirectory,
 				Debug:          debug,
 
@@ -227,7 +231,7 @@ func GetStartWebCmd() *cobra.Command {
 
 	cmd.Flags().Uint16(flagPort, defaultWebPort, "port to bind Web service to")
 	cmd.Flags().StringP(flagAuthorizationToken, "a", "", "authorization token")
-	cmd.Flags().StringSlice(flagDisks, []string{"/"}, "disks to monitor, must be path, mount-point, not device")
+	cmd.Flags().StringSlice(flagMonitorDisks, []string{"/"}, "disks to monitor, must be path, mount-point, not device")
 	cmd.Flags().Bool(flagDebug, false, "enable debug mode")
 
 	cmd.Flags().String(flagBrand, defaultBrand, "brand")

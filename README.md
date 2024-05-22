@@ -45,7 +45,8 @@ nmngd start-web ~/.rpc-gaia \
   --exr-rpc-url https://rpc1.cosmos.m.valoper.io \
   --exr-rest-url https://rest1.cosmos.m.valoper.io \
   --exr-favicon-url https://cosmos.m.valoper.io/favicon.ico \
-  --exr-logo-url https://cosmos.m.valoper.io/logo.png
+  --exr-logo-url https://cosmos.m.valoper.io/logo.png \
+  --monitor-disks /mount/data1 --monitor-disks /mount/data2
 ```
 Generate start command:
 ```bash
