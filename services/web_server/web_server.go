@@ -12,6 +12,7 @@ import (
 	statikfs "github.com/rakyll/statik/fs"
 	"html/template"
 	"net/http"
+	"strings"
 )
 
 func StartWebServer(cfg webtypes.Config) {
@@ -30,6 +31,21 @@ func StartWebServer(cfg webtypes.Config) {
 	r := gin.Default()
 	r.Use(func(c *gin.Context) {
 		c.Set(constants.GinConfig, cfg)
+	})
+	r.Use(func(c *gin.Context) {
+		if strings.HasPrefix(strings.TrimPrefix(c.Request.URL.Path, "/"), "api/internal") {
+			w := wrapGin(c)
+			if !w.IsAuthorizedRequest() {
+				w.PrepareDefaultErrorResponse().
+					WithHttpStatusCode(http.StatusForbidden).
+					WithResult("invalid authentication token").
+					SendResponse()
+				c.Abort()
+				return
+			}
+		}
+
+		c.Next()
 	})
 
 	const (
@@ -57,6 +73,7 @@ func StartWebServer(cfg webtypes.Config) {
 
 	// API
 	r.GET("/api/node/live-peers", HandleApiNodeLivePeers)
+	r.GET("/api/internal/monitoring/stats", HandleApiInternalMonitoringStats)
 
 	// Web
 	r.GET("/", HandleWebIndex)

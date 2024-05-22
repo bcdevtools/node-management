@@ -38,3 +38,17 @@ func (w GinWrapper) Binder() *GinBinder {
 func (w GinWrapper) Config() types.Config {
 	return w.c.MustGet(constants.GinConfig).(types.Config)
 }
+
+func (w GinWrapper) IsAuthorizedRequest() bool {
+	cfg := w.Config()
+	if cfg.AuthorizeToken == "" {
+		return false
+	}
+
+	token := w.c.GetHeader("VN-Authorization")
+	if token == "" {
+		return false
+	}
+
+	return token == cfg.AuthorizeToken
+}

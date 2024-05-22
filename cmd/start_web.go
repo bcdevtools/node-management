@@ -13,6 +13,7 @@ import (
 const (
 	flagPort               = "port"
 	flagAuthorizationToken = "authorization-token"
+	flagDisks              = "disks"
 	flagDebug              = "debug"
 
 	flagBrand               = "brand"
@@ -52,6 +53,7 @@ func GetStartWebCmd() *cobra.Command {
 			nodeHomeDirectory := strings.TrimSpace(args[0])
 			port, _ := cmd.Flags().GetUint16(flagPort)
 			authorizationToken, _ := cmd.Flags().GetString(flagAuthorizationToken)
+			disks, _ := cmd.Flags().GetStringSlice(flagDisks)
 			debug, _ := cmd.Flags().GetBool(flagDebug)
 
 			brand, _ := cmd.Flags().GetString(flagBrand)
@@ -80,6 +82,35 @@ func GetStartWebCmd() *cobra.Command {
 			if authorizationToken == "" {
 				utils.ExitWithErrorMsgf("ERR: authorization token is required, use --%s flag to set it\n", flagAuthorizationToken)
 				return
+			}
+
+			if disks == nil || len(disks) == 0 {
+				utils.ExitWithErrorMsgf("ERR: disks is required, use --%s flag to set it\n", flagDisks)
+				return
+			}
+			for _, disk := range disks {
+				disk := strings.TrimSpace(disk)
+				if !strings.HasPrefix(disk, "/") {
+					utils.ExitWithErrorMsgf("ERR: disk must be absolute path, correct the --%s flag\n", flagDisks)
+					return
+				}
+				if strings.HasPrefix(disk, "/dev") {
+					utils.ExitWithErrorMsgf("ERR: disk must be path, not device, correct the --%s flag\n", flagDisks)
+					return
+				}
+				_, exists, isDir, err := utils.FileInfo(disk)
+				if err != nil {
+					utils.ExitWithErrorMsgf("ERR: disk %s is invalid, correct the --%s flag\n", disk, flagDisks)
+					return
+				}
+				if !exists {
+					utils.ExitWithErrorMsgf("ERR: disk %s does not exists, correct the --%s flag\n", disk, flagDisks)
+					return
+				}
+				if !isDir {
+					utils.ExitWithErrorMsgf("ERR: disk %s is not a directory, correct the --%s flag\n", disk, flagDisks)
+					return
+				}
 			}
 
 			brand = strings.TrimSpace(brand)
@@ -170,6 +201,7 @@ func GetStartWebCmd() *cobra.Command {
 			web_server.StartWebServer(webtypes.Config{
 				Port:           port,
 				AuthorizeToken: authorizationToken,
+				Disks:          disks,
 				NodeHome:       nodeHomeDirectory,
 				Debug:          debug,
 
@@ -195,6 +227,7 @@ func GetStartWebCmd() *cobra.Command {
 
 	cmd.Flags().Uint16(flagPort, defaultWebPort, "port to bind Web service to")
 	cmd.Flags().StringP(flagAuthorizationToken, "a", "", "authorization token")
+	cmd.Flags().StringSlice(flagDisks, []string{"/"}, "disks to monitor, must be path, mount-point, not device")
 	cmd.Flags().Bool(flagDebug, false, "enable debug mode")
 
 	cmd.Flags().String(flagBrand, defaultBrand, "brand")
