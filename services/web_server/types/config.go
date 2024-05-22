@@ -5,6 +5,7 @@ import "path"
 type Config struct {
 	Port           uint16
 	AuthorizeToken string
+	Disks          []string
 	NodeHome       string
 	Debug          bool
 
