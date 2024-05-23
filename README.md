@@ -1,6 +1,8 @@
 ## Install
 ```bash
-cd ~ && go install github.com/bcdevtools/node-management/cmd/nmngd@latest
+git clone https://github.com/bcdevtools/node-management
+cd node-management
+make install
 ```
 
 ## Node setup check
