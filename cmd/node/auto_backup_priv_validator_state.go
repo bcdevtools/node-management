@@ -477,7 +477,9 @@ func genSetupThenExit(nodeHomeDirectory, binaryPathToKill string, keepRecent int
 	chainName := utils.ReadText(false)
 	fmt.Println("Mainnet or Testnet?")
 	networkType := utils.ReadText(false)
+	fmt.Println()
 	fmt.Println("INF: setup guide:")
+	fmt.Println()
 	fmt.Println("1. Create service file")
 	fmt.Println("> sudo vi /etc/systemd/system/" + serviceFileName + ".service")
 	fmt.Printf(`[Unit]
@@ -486,24 +488,29 @@ After=network.target
 #
 [Service]
 User=%s
-ExecStart=%s/go/bin/%s start %s --%s %s --%s %d
+ExecStart=/usr/local/bin/%s node %s %s --%s %s --%s %d
 RestartSec=1
 Restart=on-failure
 LimitNOFILE=1024
 #
 [Install]
 WantedBy=multi-user.target
-`, chainName, networkType, currentUser.Username, currentUser.HomeDir, constants.BINARY_NAME, nodeHomeDirectory, flagBinaryKillByAutoBackup, binaryPathToKill, flagKeep, keepRecent)
+`, chainName, networkType, currentUser.Username, constants.BINARY_NAME, commandAutoBackupPrivValidatorState, nodeHomeDirectory, flagBinaryKillByAutoBackup, binaryPathToKill, flagKeep, keepRecent)
+	fmt.Println()
 	fmt.Println("2. Setup visudo")
+	fmt.Println()
 	fmt.Println("> sudo visudo")
 	fmt.Printf(strings.ReplaceAll(strings.ReplaceAll(`# Allow user @USER@ to manage @SVC@ service
 @USER@ ALL= NOPASSWD: /usr/bin/systemctl start @SVC@
 @USER@ ALL= NOPASSWD: /usr/bin/systemctl stop @SVC@
 @USER@ ALL= NOPASSWD: /usr/bin/systemctl restart @SVC@
-@USER@ ALL= NOPASSWD: /usr/bin/systemctl enable @SVC@ # Do not allow disable
+@USER@ ALL= NOPASSWD: /usr/bin/systemctl enable @SVC@
+# Do not allow disable
 @USER@ ALL= NOPASSWD: /usr/bin/systemctl status @SVC@
 `, "@USER@", currentUser.Username), "@SVC@", serviceFileName))
+	fmt.Println()
 	fmt.Println("3. Enable service to automatically run at startup")
-	fmt.Println("> sudo systemctl daemon-reload && sudo systemctl enable " + serviceFileName + ".service")
+	fmt.Println()
+	fmt.Println("> sudo systemctl daemon-reload && sudo systemctl enable " + serviceFileName)
 	os.Exit(0)
 }
