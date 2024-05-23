@@ -195,7 +195,7 @@ func GetAutoBackupPrivValidatorStateCmd() *cobra.Command {
 					killedStatusOnSoftProtectRestoreSnapshot := &killedStatus{}
 
 					for {
-						shouldIgnoreSleep := killNodeOnLoop(binaryNameToKill, killedStatusOnSoftProtectRestoreSnapshot)
+						shouldIgnoreSleep := killNodeOnLoop(binaryNameToKill, false, killedStatusOnSoftProtectRestoreSnapshot)
 						if shouldIgnoreSleep {
 							time.Sleep(slightlySleepDuration)
 						} else {
@@ -281,8 +281,9 @@ How to recover:
 				// Force-stop the node
 
 				killedStatusOnFatal := &killedStatus{}
+				fmt.Println("WARN: Killing the node binary:", binaryNameToKill)
 				for {
-					shouldIgnoreSleep := killNodeOnLoop(binaryNameToKill, killedStatusOnFatal)
+					shouldIgnoreSleep := killNodeOnLoop(binaryNameToKill, true, killedStatusOnFatal)
 					if shouldIgnoreSleep {
 						time.Sleep(slightlySleepDuration)
 					} else {
@@ -304,10 +305,7 @@ type killedStatus struct {
 	killedCount uint
 }
 
-func killNodeOnLoop(binaryNameToKill string, killedStatus *killedStatus) (shouldIgnoreSleep bool) {
-	if killedStatus.killedCount < 1 {
-		fmt.Println("INF: Killing the node binary:", binaryNameToKill)
-	}
+func killNodeOnLoop(binaryNameToKill string, fatalCase bool, killedStatus *killedStatus) (shouldIgnoreSleep bool) {
 	processes, err := process.Processes()
 	if err != nil {
 		utils.PrintlnStdErr("ERR: failed to get processes:", err)
@@ -372,7 +370,7 @@ func killNodeOnLoop(binaryNameToKill string, killedStatus *killedStatus) (should
 	}
 
 	if len(processesToKill) < 1 {
-		if killedStatus.killedCount < 1 {
+		if fatalCase && killedStatus.killedCount < 1 {
 			utils.PrintlnStdErr("ERR: no process found to be killed")
 		}
 		shouldIgnoreSleep = true
