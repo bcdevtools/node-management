@@ -291,9 +291,6 @@ func GetDumpSnapshotCmd() *cobra.Command {
 			}
 			externalRpcs, _ := cmd.Flags().GetStringSlice(flagExternalRpc)
 			rpcEps := append(externalRpcs, rpc)
-			if len(rpcEps) == 1 {
-				rpcEps = append(rpcEps, rpcEps[0])
-			}
 
 			for {
 				resp, err := http.Get(fmt.Sprintf("%s/status", strings.TrimSuffix(rpc, "/")))
@@ -304,27 +301,68 @@ func GetDumpSnapshotCmd() *cobra.Command {
 				time.Sleep(10 * time.Second)
 			}
 
-			output, ec := utils.LaunchAppAndGetOutput(
-				"/bin/bash",
-				[]string{
-					"-c", fmt.Sprintf(`curl -s "%s/block?height=%d" | jq -r .result.block_id.hash`, rpc, mostRecentSnapshot.height),
-				},
-			)
-			if ec != 0 {
-				utils.PrintlnStdErr(output)
-				utils.PrintlnStdErr("ERR: failed to get block hash from rpc:", rpc)
+			chanTrustHash := make(chan string, len(rpcEps))
+			registeredCleanup = append(registeredCleanup, func() {
+				close(chanTrustHash)
+			})
+
+			for _, rpc := range rpcEps {
+				go func(rpc string) {
+					var trustHash string
+					defer func() {
+						chanTrustHash <- trustHash
+					}()
+
+					output, ec := utils.LaunchAppAndGetOutput(
+						"/bin/bash",
+						[]string{
+							"-c", fmt.Sprintf(`curl -m 30 -s "%s/block?height=%d" | jq -r .result.block_id.hash`, rpc, mostRecentSnapshot.height),
+						},
+					)
+					if ec != 0 {
+						utils.PrintlnStdErr(output)
+						utils.PrintlnStdErr("ERR: failed to get block hash from rpc:", rpc)
+						return
+					}
+
+					trustHash = strings.TrimSpace(output)
+					if !regexp.MustCompile(`^[A-F\d]{64}$`).MatchString(trustHash) {
+						utils.PrintlnStdErr("ERR: invalid block hash", trustHash, "from rpc", rpc)
+						trustHash = ""
+					}
+				}(rpc)
+			}
+
+			var trustHash string
+			for c := 1; c <= len(rpcEps); c++ {
+				resTrustHash := <-chanTrustHash
+				if resTrustHash == "" {
+					continue
+				}
+				if trustHash != "" {
+					// ignore
+					continue
+				}
+				trustHash = resTrustHash
+			}
+
+			if trustHash == "" {
+				utils.PrintlnStdErr("ERR: failed to get trust hash from rpc")
 				exitWithError = true
 				return
 			}
-			trustHash := strings.TrimSpace(output)
-			if !regexp.MustCompile(`^[A-F\d]{64}$`).MatchString(trustHash) {
-				utils.PrintlnStdErr("ERR: invalid block hash", trustHash, "from rpc")
-				exitWithError = true
-				return
+
+			if len(rpcEps) == 1 {
+				rpcEps = append(rpcEps, rpcEps[0])
 			}
 			sedArgs := []string{
 				"-i.bak",
-				"-E", `s|^(enable[[:space:]]+=[[:space:]]+).*$|\1true| ; s|^(rpc_servers[[:space:]]+=[[:space:]]+).*$|\1\"` + strings.Join(rpcEps, ",") + `\"| ; s|^(trust_height[[:space:]]+=[[:space:]]+).*$|\1` + fmt.Sprintf("%d", mostRecentSnapshot.height) + `| ; s|^(trust_hash[[:space:]]+=[[:space:]]+).*$|\1"` + trustHash + `"|`,
+				"-E", `s|^(enable[[:space:]]+=[[:space:]]+).*$|\1true| ; s|^(rpc_servers[[:space:]]+=[[:space:]]+).*$|\1\"` + strings.Join(func() []string {
+					if len(rpcEps) == 1 {
+						return []string{rpcEps[0], rpcEps[0]}
+					}
+					return rpcEps
+				}(), ",") + `\"| ; s|^(trust_height[[:space:]]+=[[:space:]]+).*$|\1` + mostRecentSnapshot.HeightStr() + `| ; s|^(trust_hash[[:space:]]+=[[:space:]]+).*$|\1"` + trustHash + `"|`,
 				path.Join(dumpHomeDir, "config", "config.toml"),
 			}
 			ec = utils.LaunchApp("sed", sedArgs)
