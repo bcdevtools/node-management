@@ -2,6 +2,7 @@ package node
 
 //goland:noinspection GoSnakeCaseUsage
 import (
+	"github.com/bcdevtools/node-management/cmd/node/dump_snapshot"
 	setup_check "github.com/bcdevtools/node-management/cmd/node/setup-check"
 	"github.com/bcdevtools/node-management/utils"
 	"github.com/bcdevtools/node-management/validation"
@@ -22,6 +23,7 @@ func GetNodeCommands() *cobra.Command {
 		GetStateSyncCmd(),
 		GetZipSnapshotCmd(),
 		GetAutoBackupPrivValidatorStateCmd(),
+		dump_snapshot.GetDumpSnapshotCmd(),
 	)
 
 	return cmd

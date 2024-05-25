@@ -5,7 +5,6 @@ import (
 	"github.com/bcdevtools/node-management/types"
 	"github.com/bcdevtools/node-management/utils"
 	"github.com/bcdevtools/node-management/validation"
-	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
 	"os"
 	"os/exec"
@@ -189,36 +188,10 @@ func GetStateSyncCmd() *cobra.Command {
 			}
 
 			configFilePath := path.Join(configDirPath, "config.toml")
-			_, exists, _, err = utils.FileInfo(configFilePath)
+			stateSyncNodeRpc, err := types.ReadNodeRpcFromConfigToml(configFilePath)
 			if err != nil {
-				utils.ExitWithErrorMsg("ERR: failed to check config file:", err)
+				utils.ExitWithErrorMsg("ERR: failed to read node rpc from config file:", err)
 				return
-			}
-			if !exists {
-				utils.ExitWithErrorMsg("ERR: config file does not exist:", configFilePath)
-				return
-			}
-			bz, err := os.ReadFile(configFilePath)
-			if err != nil {
-				utils.ExitWithErrorMsg("ERR: failed to read config.toml file:", err)
-				return
-			}
-			var config types.ConfigToml
-			err = toml.Unmarshal(bz, &config)
-			if err != nil {
-				utils.ExitWithErrorMsg("ERR: failed to unmarshal config.toml file:", err)
-				return
-			}
-			if config.RPC == nil || config.RPC.LAddr == "" {
-				utils.ExitWithErrorMsg("ERR: rpc section, address is not set in config.toml")
-				return
-			}
-			stateSyncNodeRpc := strings.TrimSpace(config.RPC.LAddr)
-			stateSyncNodeRpc = strings.TrimPrefix(stateSyncNodeRpc, "tcp://")
-			stateSyncNodeRpc = strings.TrimSuffix(stateSyncNodeRpc, "/")
-			//goland:noinspection HttpUrlsUsage
-			if !strings.HasPrefix(stateSyncNodeRpc, "http://") {
-				stateSyncNodeRpc = "http://" + stateSyncNodeRpc
 			}
 
 			var modernSed bool
@@ -286,7 +259,12 @@ func GetStateSyncCmd() *cobra.Command {
 			launchSed(`s|^(enable[[:space:]]+=[[:space:]]+).*$|\1true| ; s|^(rpc_servers[[:space:]]+=[[:space:]]+).*$|\1\"` + rpc + "," + rpc + `\"| ; s|^(trust_height[[:space:]]+=[[:space:]]+).*$|\1` + fmt.Sprintf("%d", blockHeight) + `| ; s|^(trust_hash[[:space:]]+=[[:space:]]+).*$|\1"` + trustHash + `"|`)
 			fmt.Println("INF: trust_height, rpc_servers, trust_hash and enable are updated in config file")
 
-			startArgs := []string{"start", "--home", nodeHomeDirectory}
+			startArgs := []string{
+				"start",
+				"--home", nodeHomeDirectory,
+				"--api.enable=false",
+				"--grpc.enable=false",
+			}
 			if cmd.Flags().Changed(flagXCrisisSkipAssertInvariants) {
 				startArgs = append(startArgs, fmt.Sprintf("--%s", flagXCrisisSkipAssertInvariants))
 			}
