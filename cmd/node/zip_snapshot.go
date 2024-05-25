@@ -6,6 +6,7 @@ import (
 	"github.com/bcdevtools/node-management/utils"
 	"github.com/spf13/cobra"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 	"time"
@@ -68,13 +69,34 @@ func GetZipSnapshotCmd() *cobra.Command {
 				return
 			}
 
-			_ = os.RemoveAll(path.Join(dataDirPath, "snapshots"))
-			_ = os.RemoveAll(path.Join(dataDirPath, "tx_index.db"))
+			workingDir, err := os.Getwd() // zip data dir
+			if err != nil {
+				utils.ExitWithErrorMsg("ERR: failed to get current working directory")
+				return
+			}
 
-			// zip data dir
-			zipFileNameWithoutExt := fmt.Sprintf("snapshot_%s.tar.lz4", utils.GetDateTimeStringCompatibleWithFileName(time.Now().UTC(), time.DateTime))
-
-			ec := utils.LaunchApp("/bin/bash", []string{"-c", fmt.Sprintf("tar cvf - %s | lz4 - %s", dataDirPath, zipFileNameWithoutExt)})
+			ec := utils.LaunchAppWithSetup(
+				"/bin/bash", []string{
+					"-c", fmt.Sprintf("tar --exclude %s --exclude %s -cvf - %s | lz4 - %s",
+						"./data/snapshots",
+						"./data/tx_index.db",
+						"./data",
+						path.Join(
+							workingDir,
+							fmt.Sprintf(
+								"snapshot_%s.tar.lz4",
+								utils.GetDateTimeStringCompatibleWithFileName(time.Now().UTC(), time.DateTime),
+							),
+						),
+					),
+				},
+				func(launchCmd *exec.Cmd) {
+					launchCmd.Dir = path.Dir(dataDirPath)
+					launchCmd.Stdin = os.Stdin
+					launchCmd.Stdout = os.Stdout
+					launchCmd.Stderr = os.Stderr
+				},
+			)
 			if ec != 0 {
 				utils.ExitWithErrorMsg("ERR: failed to zip data dir")
 				return
