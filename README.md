@@ -22,7 +22,7 @@ nmngd node extract-addrbook ~/.node_home_source/config/addrbook.json ~/.node_hom
 nmngd node prune-addrbook ~/.node_home/config/addrbook.json
 nmngd node prune-data ~/.node_home --binary xxxd [--backup-pvs ~/priv_validator_state.json.backup]
 nmngd node state-sync ~/.node_home --binary xxxd --rpc http://localhost:26657 [--address-book /home/x/.node/config/addrbook.json] [--peers nodeid@127.0.0.1:26656] [--seeds seed@1.1.1.1:26656] [--max-duration 12h]
-nmngd node dump-snapshot ~/.node_home --binary xxxd [--max-duration 12h] [--no-service] [--service-name xxx] [--external-rpc https://rpc1.example.com:443 --external-rpc https://rpc2.example.com:443]
+nmngd node dump-snapshot ~/.node_home --binary xxxd [--max-duration 1h] [--no-service] [--service-name xxx] [--external-rpc https://rpc1.example.com:443 --external-rpc https://rpc2.example.com:443] [--fix-genesis]
 nmngd node zip-snapshot ~/.node_home
 ```
 

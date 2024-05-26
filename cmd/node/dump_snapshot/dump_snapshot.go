@@ -22,6 +22,7 @@ const (
 	flagBinary                      = "binary"
 	flagMaxDuration                 = "max-duration"
 	flagXCrisisSkipAssertInvariants = "x-crisis-skip-assert-invariants"
+	flagFixGenesis                  = "fix-genesis"
 )
 
 func GetDumpSnapshotCmd() *cobra.Command {
@@ -130,6 +131,13 @@ func GetDumpSnapshotCmd() *cobra.Command {
 				utils.PrintlnStdErr("ERR: failed to prepare dump home directory:", err)
 				exitWithError = true
 				return
+			}
+			if cmd.Flags().Changed(flagFixGenesis) {
+				fmt.Println("INF: fixing genesis initial_height")
+				genesisFilePath := path.Join(dumpHomeDir, "config", "genesis.json")
+				_ = utils.LaunchApp("/bin/bash", []string{
+					"-c", fmt.Sprintf(`jq '.initial_height = "1"' %s > %s.tmp && mv %s.tmp %s`, genesisFilePath, genesisFilePath, genesisFilePath, genesisFilePath),
+				})
 			}
 
 			fmt.Println("INF: force reset dump home directory")
@@ -384,7 +392,7 @@ func GetDumpSnapshotCmd() *cobra.Command {
 				return
 			}
 
-			fmt.Println("INF: dumped successfully")
+			fmt.Println("INF: successfully dumped snapshot into", dumpHomeDir)
 		},
 	}
 
@@ -394,6 +402,7 @@ func GetDumpSnapshotCmd() *cobra.Command {
 	cmd.Flags().String(flagServiceName, "", "Custom service name, used to call start/stop")
 	cmd.Flags().StringSlice(flagExternalRpc, []string{}, "External RPC address used for bootstrapping node")
 	cmd.Flags().Bool(flagXCrisisSkipAssertInvariants, false, "Skip assert invariants")
+	cmd.Flags().Bool(flagFixGenesis, false, "Fix genesis `initial_height`")
 
 	return cmd
 }
