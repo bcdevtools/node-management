@@ -277,6 +277,11 @@ func GetStateSyncCmd() *cobra.Command {
 				return
 			}
 
+			const minOfMaxDuration = 30 * time.Minute
+			if maxDuration < minOfMaxDuration {
+				utils.ExitWithErrorMsgf("ERR: minimum accepted for --%s is %s\n", flagMaxDuration, minOfMaxDuration)
+				return
+			}
 			expiry := time.Now().UTC().Add(maxDuration)
 
 			ensureStateSyncNotExpired := func() {

@@ -91,8 +91,9 @@ func GetDumpSnapshotCmd() *cobra.Command {
 				return
 			}
 
-			if maxDuration < 30*time.Minute {
-				utils.PrintlnStdErr("ERR: minimum duration is 30 minutes")
+			const minOfMaxDuration = 30 * time.Minute
+			if maxDuration < minOfMaxDuration {
+				utils.PrintfStdErr("ERR: minimum accepted for --%s is %s\n", flagMaxDuration, minOfMaxDuration)
 				exitWithError = true
 				return
 			}
@@ -397,7 +398,7 @@ func GetDumpSnapshotCmd() *cobra.Command {
 	}
 
 	cmd.Flags().String(flagBinary, "", "Path to the binary")
-	cmd.Flags().Duration(flagMaxDuration, 12*time.Hour, "Maximum duration to wait for dumping snapshot")
+	cmd.Flags().Duration(flagMaxDuration, 1*time.Hour, "Maximum duration to wait for dumping snapshot")
 	cmd.Flags().Bool(flagNoService, false, "Do not stop and start service")
 	cmd.Flags().String(flagServiceName, "", "Custom service name, used to call start/stop")
 	cmd.Flags().StringSlice(flagExternalRpc, []string{}, "External RPC address used for bootstrapping node")
