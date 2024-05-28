@@ -29,7 +29,9 @@ func GetDumpSnapshotCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "dump-snapshot [node_home]",
 		Short: "Dump snapshot from node, using Cosmos-SDK snapshot commands",
-		Args:  cobra.ExactArgs(1),
+		Long: "Dump snapshot from node, using Cosmos-SDK snapshot commands.\n" +
+			"The node will be stopped, data will be exported, dumped and restore into another node home directory (eg ~/.gaia → ~/.gaia-dump).",
+		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			utils.MustNotUserRoot()
 
@@ -78,7 +80,7 @@ func GetDumpSnapshotCmd() *cobra.Command {
 
 			if err := validateBinary(binary); err != nil {
 				utils.PrintlnStdErr("ERR: invalid binary path:", err)
-				utils.PrintlnStdErr("ERR: correct flag --%s\n", flagBinary)
+				utils.PrintfStdErr("ERR: correct flag --%s\n", flagBinary)
 				exitWithError = true
 				return
 			}
@@ -298,8 +300,15 @@ func GetDumpSnapshotCmd() *cobra.Command {
 				exitWithError = true
 				return
 			}
-			externalRpcs, _ := cmd.Flags().GetStringSlice(flagExternalRpc)
-			rpcEps := append(externalRpcs, rpc)
+			externalRPCs, _ := cmd.Flags().GetStringSlice(flagExternalRpc)
+			rpcEps := []string{rpc}
+			for _, externalRPC := range externalRPCs {
+				rpc := strings.TrimSpace(externalRPC)
+				if rpc == "" {
+					continue
+				}
+				rpcEps = append(rpcEps, rpc)
+			}
 
 			for {
 				resp, err := http.Get(fmt.Sprintf("%s/status", strings.TrimSuffix(rpc, "/")))
@@ -325,7 +334,11 @@ func GetDumpSnapshotCmd() *cobra.Command {
 					output, ec := utils.LaunchAppAndGetOutput(
 						"/bin/bash",
 						[]string{
-							"-c", fmt.Sprintf(`curl -m 30 -s "%s/block?height=%d" | jq -r .result.block_id.hash`, rpc, mostRecentSnapshot.height),
+							"-c", fmt.Sprintf(
+								`curl -m 30 -s "%s/block?height=%d" | jq -r .result.block_id.hash`,
+								rpc,
+								mostRecentSnapshot.height,
+							),
 						},
 					)
 					if ec != 0 {
@@ -349,7 +362,7 @@ func GetDumpSnapshotCmd() *cobra.Command {
 					continue
 				}
 				if trustHash != "" {
-					// ignore
+					// take the first valid trust hash
 					continue
 				}
 				trustHash = resTrustHash
@@ -403,7 +416,7 @@ func GetDumpSnapshotCmd() *cobra.Command {
 	cmd.Flags().String(flagServiceName, "", "Custom service name, used to call start/stop")
 	cmd.Flags().StringSlice(flagExternalRpc, []string{}, "External RPC address used for bootstrapping node")
 	cmd.Flags().Bool(flagXCrisisSkipAssertInvariants, false, "Skip assert invariants")
-	cmd.Flags().Bool(flagFixGenesis, false, "Fix genesis `initial_height`")
+	cmd.Flags().Bool(flagFixGenesis, false, "Fix `initial_height` in genesis.json")
 
 	return cmd
 }
