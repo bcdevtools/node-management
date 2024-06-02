@@ -197,9 +197,13 @@ func GetAutoBackupPrivValidatorStateCmd() *cobra.Command {
 					continue
 				}
 
+				// state decreased
+
 				const slightlySleepDuration = 5 * time.Millisecond // prevent consuming all CPU
 
 				if recentPvs.IsEmpty() {
+					// mode restore snapshot
+
 					fmt.Println("WARN: detected state file is empty, possibly restoring snapshot")
 					fmt.Println("WARN: attempts to kill the node binary", binaryNameToKill, "while waiting content to be restored")
 
@@ -230,6 +234,8 @@ func GetAutoBackupPrivValidatorStateCmd() *cobra.Command {
 					lastExecution = time.Time{} // reset last execution time, move to next as fast as possible
 					continue
 				}
+
+				// mode fatal
 
 				utils.PrintlnStdErr("FATAL: priv_validator_state.json content decreased")
 				utils.PrintlnStdErr("Previous state:")
