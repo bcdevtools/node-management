@@ -66,7 +66,7 @@ func GetAutoBackupPrivValidatorStateCmd() *cobra.Command {
 			if keepRecent < 3 {
 				keepRecent = 3
 			}
-			fmt.Println("INF: keep the last", keepRecent, "backups")
+			fmt.Println("INF: keep backup of the last", keepRecent, "blocks")
 
 			binaryPathToKill, _ := cmd.Flags().GetString(flagBinaryKillByAutoBackup)
 			if binaryPathToKill == "" {
@@ -124,6 +124,7 @@ func GetAutoBackupPrivValidatorStateCmd() *cobra.Command {
 						err := os.Remove(createdBackup[i])
 						if err != nil {
 							utils.PrintlnStdErr("ERR: failed to remove backup file:", createdBackup[i], ":", err)
+							// ignore error
 						}
 					}
 					createdBackup = createdBackup[countCreatedBackups-keepRecent:]
@@ -294,7 +295,7 @@ How to recover:
 		},
 	}
 
-	cmd.Flags().Int(flagKeep, 3, "Keep the last N backups")
+	cmd.Flags().Int(flagKeep, 3, "Keep backup of the last N blocks")
 	cmd.Flags().String(flagBinaryKillByAutoBackup, "", "Absolute path of the chain binary to be killed by process when priv_validator_state.json has problem")
 	cmd.Flags().Bool(flagGenSetup, false, "Display guide to setup instead of running business logic")
 
