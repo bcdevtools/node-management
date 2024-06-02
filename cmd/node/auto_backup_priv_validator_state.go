@@ -105,29 +105,35 @@ func GetAutoBackupPrivValidatorStateCmd() *cobra.Command {
 			fmt.Println("INF: latest state from backup:")
 			fmt.Println(latestBackupPvs.Json())
 
-			const interval = 800 * time.Millisecond
+			const interval = 200 * time.Millisecond
 			var lastExecution time.Time
 
-			var createdBackup []string
+			type backupPerHeight struct {
+				heightStr string
+				files     []string
+			}
+			backupFilesByHeight := make([]*backupPerHeight, 0)
 
 			for {
 				if time.Since(lastExecution) < interval {
-					time.Sleep(50 * time.Millisecond)
+					time.Sleep(20 * time.Millisecond)
 					continue
 				}
 
 				lastExecution = time.Now().UTC()
 
 				// Remove old backups
-				if countCreatedBackups := len(createdBackup); countCreatedBackups > keepRecent {
-					for i := 0; i < countCreatedBackups-keepRecent; i++ {
-						err := os.Remove(createdBackup[i])
-						if err != nil {
-							utils.PrintlnStdErr("ERR: failed to remove backup file:", createdBackup[i], ":", err)
-							// ignore error
+				if numberOfBackupHeights := len(backupFilesByHeight); numberOfBackupHeights > keepRecent {
+					pruneSize := numberOfBackupHeights - keepRecent
+					for _, backupPerHeight := range backupFilesByHeight[:pruneSize] {
+						for _, file := range backupPerHeight.files {
+							if err := os.Remove(file); err != nil && !os.IsNotExist(err) {
+								utils.PrintlnStdErr("ERR: failed to remove backup file", file, ":", err)
+								// ignore error
+							}
 						}
 					}
-					createdBackup = createdBackup[countCreatedBackups-keepRecent:]
+					backupFilesByHeight = backupFilesByHeight[pruneSize:]
 				}
 
 				// Load the recent state
@@ -159,19 +165,24 @@ func GetAutoBackupPrivValidatorStateCmd() *cobra.Command {
 					continue
 				}
 
-				// backup the recent state to file, marked by time
-				backupFileNameMarkByTime := fmt.Sprintf(
-					"%s_%s.%s.json",
+				// backup the recent state to file, marked by time and height/round/step
+				backupFileNameMarkByTimeAndHrs := fmt.Sprintf(
+					"%s_%s_hrs_%s_%d_%d.json",
 					backupPrivValStateJsonPrefixFileName,
 					utils.GetDateTimeStringCompatibleWithFileName(time.Now().UTC(), time.DateTime),
-					constants.BINARY_NAME,
+					recentPvs.Height, recentPvs.Round, recentPvs.Step,
 				)
-				backupMarkByTimeFilePath := path.Join(backupDstPath, backupFileNameMarkByTime)
-				err = recentPvs.SaveToJSONFile(backupMarkByTimeFilePath)
+				backupMarkByTimeAndHrsFilePath := path.Join(backupDstPath, backupFileNameMarkByTimeAndHrs)
+				err = recentPvs.SaveToJSONFile(backupMarkByTimeAndHrsFilePath)
 				if err != nil {
-					utils.PrintlnStdErr("ERR: failed to save backup file", backupMarkByTimeFilePath, err)
+					utils.PrintlnStdErr("ERR: failed to save backup file", backupMarkByTimeAndHrsFilePath, err)
+				} else if size := len(backupFilesByHeight); size == 0 || backupFilesByHeight[size-1].heightStr != recentPvs.Height {
+					backupFilesByHeight = append(backupFilesByHeight, &backupPerHeight{
+						heightStr: recentPvs.Height,
+						files:     []string{backupMarkByTimeAndHrsFilePath},
+					})
 				} else {
-					createdBackup = append(createdBackup, backupMarkByTimeFilePath)
+					backupFilesByHeight[size-1].files = append(backupFilesByHeight[size-1].files, backupMarkByTimeAndHrsFilePath)
 				}
 
 				if stateIncreased {
