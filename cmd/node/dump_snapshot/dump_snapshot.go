@@ -118,10 +118,18 @@ func GetDumpSnapshotCmd() *cobra.Command {
 
 			defer execCleanup()
 
+			var stoppedService bool
 			go func() {
 				time.Sleep(maxDuration)
 				utils.PrintlnStdErr("ERR: timeout")
 				execCleanup()
+				if stoppedService {
+					fmt.Println("INF: restarting service before exit due to timeout")
+					ec := utils.LaunchApp("sudo", []string{"systemctl", "restart", serviceName})
+					if ec != 0 {
+						utils.PrintlnStdErr("ERR: failed to restart service", serviceName)
+					}
+				}
 				os.Exit(1)
 			}()
 
@@ -181,6 +189,7 @@ func GetDumpSnapshotCmd() *cobra.Command {
 					return
 				}
 				time.Sleep(15 * time.Second) // wait completely shutdown
+				stoppedService = true
 			}
 
 			fmt.Println("INF: exporting snapshot")
