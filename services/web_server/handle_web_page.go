@@ -2,6 +2,7 @@ package web_server
 
 import (
 	"fmt"
+	"github.com/bcdevtools/node-management/constants"
 	webtypes "github.com/bcdevtools/node-management/services/web_server/types"
 	"github.com/bcdevtools/node-management/types"
 	"github.com/bcdevtools/node-management/utils"
@@ -23,7 +24,7 @@ func HandleWebIndex(c *gin.Context) {
 	var livePeers string
 	var livePeersCount int
 
-	peers, err := getLivePeers(w.Config())
+	peers, err := getLivePeers(cfg)
 	if err != nil {
 		utils.PrintlnStdErr("ERR: failed to get live peers:", err)
 	} else {
@@ -37,6 +38,10 @@ func HandleWebIndex(c *gin.Context) {
 
 	snapshotInfo := getSnapshotInfo(cfg)
 
+	if snapshotInfo.Error != nil && cfg.Debug {
+		utils.PrintlnStdErr("ERR: failed to get snapshot info:", snapshotInfo.Error)
+	}
+
 	var chainDescriptionLines []string
 	if cfg.ChainDescription != "" {
 		chainDescriptionLines = strings.Split(cfg.ChainDescription, "\\n")
@@ -48,6 +53,7 @@ func HandleWebIndex(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.tmpl", gin.H{
 		"host":                c.Request.Host,
 		"brand":               cfg.Brand,
+		"brandLink":           fmt.Sprintf("https://%s", strings.TrimPrefix(strings.TrimPrefix(strings.TrimPrefix(cfg.Brand, "://"), "http://"), "https://")),
 		"title":               fmt.Sprintf("%s snapshot by %s", cfg.ChainName, cfg.Brand),
 		"description":         fmt.Sprintf("Snapshot data, live-peers, addrbook for %s by %s", cfg.ChainName, cfg.Brand),
 		"chainName":           cfg.ChainName,
@@ -64,6 +70,7 @@ func HandleWebIndex(c *gin.Context) {
 		"generalNodeHomeName": cfg.GeneralNodeHomeName,
 		"generalBinaryName":   cfg.GeneralBinaryName,
 		"snapshot":            snapshotInfo,
+		"binaryVersion":       constants.VERSION,
 	})
 }
 
