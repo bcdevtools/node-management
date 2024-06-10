@@ -53,6 +53,7 @@ func HandleWebIndex(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.tmpl", gin.H{
 		"host":                c.Request.Host,
 		"brand":               cfg.Brand,
+		"brandLink":           fmt.Sprintf("https://%s", strings.TrimPrefix(strings.TrimPrefix(strings.TrimPrefix(cfg.Brand, "://"), "http://"), "https://")),
 		"title":               fmt.Sprintf("%s snapshot by %s", cfg.ChainName, cfg.Brand),
 		"description":         fmt.Sprintf("Snapshot data, live-peers, addrbook for %s by %s", cfg.ChainName, cfg.Brand),
 		"chainName":           cfg.ChainName,
