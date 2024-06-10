@@ -62,10 +62,11 @@
                 <div id="collapseLivePeers" class="accordion-collapse collapse show" aria-labelledby="headingLivePeers" data-bs-parent="#accordionMain">
                     <div class="card card-body">
                         {[{ if gt .livePeersCount 0 }]}
-                        <p class="text-secondary">{[{ .livePeersCount }]} real-time live peers from our node:</p>
+                        <div>{[{ .livePeersCount }]} live peers:</div>
+                        <div class="text-secondary"><i>real-time data from our node</i></div>
                         <pre class="border p-2"><code>{[{ .livePeers }]}</code></pre>
                         {[{ else }]}
-                        <h3 class="text-danger">Live peers temporary not available</h3>
+                        <h3 class="text-danger">Live peers list is temporary not available</h3>
                         {[{ end }]}
                     </div>
                 </div>
@@ -157,11 +158,13 @@ mv addrbook.json $HOME/{[{ .generalNodeHomeName }]}/config</code></pre>
                         <p class="text-warning">Do not state-sync a validator node, instead state-sync a full-node and move data to validator node. Be sure backup and restore <b>`priv_validator_key.json`</b></p>
                         <p>Our state-sync RPC server for {[{ .chainName }]} is</p>
                         <pre class="border p-2"><code>{[{ .rpcUrl }]}</code></pre>
-                        <p>
-                            Prepare a reusable script <b>`state_sync.sh`</b> with the following code.
-                            The code will fetch important state-sync information (such as block height and trust hash)
-                            from RPC server and update your <b>`config.toml`</b> file accordingly.
-                        </p>
+                        <div>
+                            <div>Prepare a reusable script <b>`state_sync.sh`</b> with the following code.</div>
+                            <div class="text-secondary">
+                                <i>The code will fetch important state-sync information (such as block height and trust hash)
+                                    from RPC server and update your <b>`config.toml`</b> file accordingly.</i>
+                            </div>
+                        </div>
                         <pre class="border p-2"><code>#!/bin/bash
 
 SNAP_RPC="{[{ .rpcUrl }]}"
