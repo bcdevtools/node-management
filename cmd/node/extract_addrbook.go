@@ -13,6 +13,10 @@ import (
 
 const addrBookFileName = "addrbook.json"
 
+const (
+	flagLastSuccessThreshold = "last-success-threshold"
+)
+
 func GetExtractAddrBookCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "extract-addrbook [input-file] [output-file]",
@@ -63,7 +67,8 @@ func GetExtractAddrBookCmd() *cobra.Command {
 				return
 			}
 
-			livePeers := addrBook.GetLivePeers(48 * time.Hour)
+			lastSuccessThreshold, _ := cmd.Flags().GetDuration(flagLastSuccessThreshold)
+			livePeers := addrBook.GetLivePeers(lastSuccessThreshold)
 
 			newAddrBook := types.AddrBook{
 				Key:   addrBook.Key,
@@ -83,6 +88,8 @@ func GetExtractAddrBookCmd() *cobra.Command {
 			}
 		},
 	}
+
+	cmd.Flags().DurationP(flagLastSuccessThreshold, "t", 48*time.Hour, "Threshold for last success time")
 
 	return cmd
 }
