@@ -119,6 +119,17 @@ func GetDumpSnapshotCmd() *cobra.Command {
 			defer execCleanup()
 
 			var stoppedService bool
+
+			defer func() {
+				if exitWithError && stoppedService {
+					fmt.Println("INF: restarting service before exit due to error")
+					ec := utils.LaunchApp("sudo", []string{"systemctl", "restart", serviceName})
+					if ec != 0 {
+						utils.PrintlnStdErr("ERR: failed to restart service", serviceName)
+					}
+				}
+			}()
+
 			go func() {
 				time.Sleep(maxDuration)
 				utils.PrintlnStdErr("ERR: timeout")
