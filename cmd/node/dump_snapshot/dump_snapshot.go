@@ -239,6 +239,18 @@ func GetDumpSnapshotCmd() *cobra.Command {
 				_ = os.Remove(outputFileName)
 			})
 
+			if !noService {
+				// restart the service
+				fmt.Println("INF: restarting service")
+				ec = utils.LaunchApp("sudo", []string{"systemctl", "restart", serviceName})
+				if ec != 0 {
+					utils.PrintlnStdErr("ERR: failed to restart service")
+					exitWithError = true
+					return
+				}
+				time.Sleep(15 * time.Second)
+			}
+
 			fmt.Println("INF: restoring into", dumpHomeDir)
 			ec = utils.LaunchApp(binary, []string{
 				"snapshots", "load", outputFileName,
@@ -292,15 +304,6 @@ func GetDumpSnapshotCmd() *cobra.Command {
 				registeredCleanup = append(registeredCleanup, func() {
 					_ = launchCmd.Process.Kill()
 				})
-			} else {
-				fmt.Println("INF: restarting service")
-				ec = utils.LaunchApp("sudo", []string{"systemctl", "restart", serviceName})
-				if ec != 0 {
-					utils.PrintlnStdErr("ERR: failed to restart service")
-					exitWithError = true
-					return
-				}
-				time.Sleep(5 * time.Second)
 			}
 
 			rpc, err := types.ReadNodeRpcFromConfigToml(path.Join(nodeHomeDirectory, "config", "config.toml"))
