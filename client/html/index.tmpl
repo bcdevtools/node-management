@@ -145,7 +145,7 @@ mv addrbook.json $HOME/{[{ .generalNodeHomeName }]}/config</code></pre>
                             <p>Reset data of the node</p>
                             <pre class="border p-2"><code>{[{ .generalBinaryName }]} tendermint unsafe-reset-all --home $HOME/{[{ .generalNodeHomeName }]} --keep-addr-book</code></pre>
                             <p>Decompress the snapshot to your database location. Your database location under <b>`{[{ .generalNodeHomeName }]}/data`</b> or something like that, depending on the node implementation.</p>
-                            <pre class="border p-2"><code>lz4 -c -d {[{ .snapshot.FileName }]} | tar -x -C $HOME/{[{ .generalNodeHomeName }]}/data</code></pre>
+                            <pre class="border p-2"><code>lz4 -c -d {[{ .snapshot.FileName }]} | tar -x -C $HOME/{[{ .generalNodeHomeName }]}</code></pre>
                             <p><b>IMPORTANT:</b> If you are running a <b class="text-danger">validator</b> node, <b>be sure to restore</b> the <b>`priv_validator_state.json`</b> file that you have backed up.</p>
                             <pre class="border p-2"><code>mv $HOME/{[{ .generalNodeHomeName }]}/priv_validator_state.json $HOME/{[{ .generalNodeHomeName }]}/data/priv_validator_state.json</code></pre>
                             <p class="text-secondary">Verify <b>`priv_validator_key.json`</b> was restored</p>
