@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"net"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -46,7 +47,7 @@ func (ab *AddrBook) ReadAddrBook(inputFilePath string) error {
 	return nil
 }
 
-func (ab *AddrBook) GetLivePeers(validDuration time.Duration) []*KnownAddress {
+func (ab *AddrBook) GetLivePeers(validDuration time.Duration, excludeIPv6 bool) []*KnownAddress {
 	var livePeers []*KnownAddress
 	for _, addr := range ab.Addrs {
 		if addr.Addr == nil {
@@ -62,6 +63,13 @@ func (ab *AddrBook) GetLivePeers(validDuration time.Duration) []*KnownAddress {
 				continue
 			}
 			if time.Since(addr.LastAttempt) > validDuration {
+				continue
+			}
+		}
+
+		if excludeIPv6 {
+			spl := strings.Split(addr.Addr.IP.String(), ":")
+			if len(spl) > 2 {
 				continue
 			}
 		}

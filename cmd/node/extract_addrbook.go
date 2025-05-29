@@ -68,7 +68,7 @@ func GetExtractAddrBookCmd() *cobra.Command {
 			}
 
 			lastSuccessThreshold, _ := cmd.Flags().GetDuration(flagLastSuccessThreshold)
-			livePeers := addrBook.GetLivePeers(lastSuccessThreshold)
+			livePeers := addrBook.GetLivePeers(lastSuccessThreshold, true)
 
 			newAddrBook := types.AddrBook{
 				Key:   addrBook.Key,

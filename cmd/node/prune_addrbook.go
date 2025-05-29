@@ -32,7 +32,7 @@ func GetPruneAddrBookCmd() *cobra.Command {
 				return
 			}
 
-			livePeers := addrBook.GetLivePeers(48 * time.Hour)
+			livePeers := addrBook.GetLivePeers(48*time.Hour, false)
 
 			newAddrBook := types.AddrBook{
 				Key:   addrBook.Key,
