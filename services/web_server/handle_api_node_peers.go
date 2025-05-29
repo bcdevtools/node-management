@@ -37,7 +37,7 @@ func getLivePeers(cfg webtypes.Config) ([]string, error) {
 			return nil, errors.Wrap(err, "failed to read addrbook")
 		}
 
-		livePeers := addrBook.GetLivePeers(1 * time.Hour)
+		livePeers := addrBook.GetLivePeers(1*time.Hour, true)
 
 		if len(livePeers) == 0 && cfg.Debug {
 			// load random, include dead peers, on debug mode

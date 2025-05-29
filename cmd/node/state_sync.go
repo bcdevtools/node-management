@@ -168,7 +168,7 @@ func GetStateSyncCmd() *cobra.Command {
 					return
 				}
 
-				livePeers := addrBook.GetLivePeers(5 * time.Hour)
+				livePeers := addrBook.GetLivePeers(5*time.Hour, true)
 
 				if len(livePeers) == 0 {
 					utils.PrintlnStdErr("WARN: no live peers found in provided address book")
